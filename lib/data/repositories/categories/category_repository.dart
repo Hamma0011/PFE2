@@ -49,37 +49,31 @@ class CategoryRepository extends GetxController {
 
   Future<void> addCategory(CategoryModel category) async {
     try {
-      final response = await _db.from(_table).insert(category.toJson());
-      if (response.error != null) {
-        throw response.error!.message;
-      }
-    } on SupabaseException catch (e) {
-      throw SupabaseException(e.code).message;
+      await _db.from(_table).insert(category.toJson());
+      // Pas besoin de vérifier error → si ça échoue, une exception sera levée
     } on PostgrestException catch (e) {
       throw 'Erreur base de données : ${e.code} - ${e.message}';
+    } on SupabaseException catch (e) {
+      throw SupabaseException(e.code).message;
     } catch (e) {
       print(e);
-      throw 'Erreur lors ajout categorie : $e }';
+      throw 'Erreur lors ajout categorie : $e';
     }
   }
-
   Future<void> uploadDummyCategories() async {
     try {
       final categories = UploadCategories.dummyCategories;
-
       final insertData =
-          categories.map((category) => category.toJson()).toList();
-      final response = await _db.from(_table).insert(insertData);
+      categories.map((category) => category.toJson()).toList();
 
-      if (response.error != null) {
-        throw response.error!.message;
-      }
-    } on SupabaseException catch (e) {
-      throw SupabaseException(e.code).message;
+      await _db.from(_table).insert(insertData);
+      // Idem : pas besoin de response.error
     } on PostgrestException catch (e) {
       throw 'DB Error: ${e.code} - ${e.message}';
+    } on SupabaseException catch (e) {
+      throw SupabaseException(e.code).message;
     } catch (e) {
-      throw 'Something went wrong! Please try again.';
+      throw 'Quelque chose s\'est mal passé ! Veuillez réessayer.';
     }
   }
 }

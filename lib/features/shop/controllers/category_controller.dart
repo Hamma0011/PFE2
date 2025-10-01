@@ -1,70 +1,88 @@
 import 'dart:io';
 
-import 'package:caferesto/data/repositories/authentication/authentication_repository.dart';
+import 'package:caferesto/features/personalization/controllers/user_controller.dart';
+import 'package:caferesto/data/repositories/categories/category_repository.dart';
 import 'package:caferesto/data/repositories/product/product_repository.dart';
 import 'package:caferesto/features/shop/models/category_model.dart';
 import 'package:caferesto/features/shop/models/product_model.dart';
+import 'package:caferesto/utils/constants/image_strings.dart';
 import 'package:caferesto/utils/popups/loaders.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../data/repositories/categories/category_repository.dart';
-import '../../../utils/constants/image_strings.dart';
-
 class CategoryController extends GetxController {
+  /// Singleton pour récupérer le contrôleur partout
   static CategoryController get instance => Get.find();
 
+  /// Formulaire pour l'ajout de catégorie
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final parentIdController = TextEditingController();
+
+  /// Case "Catégorie en vedette"
   final isFeatured = false.obs;
 
-  // Image picker
+  /// Catégorie parente sélectionnée
+  final Rx<String?> selectedParentId = Rx<String?>(null);
+
+  /// Image picker
   final ImagePicker _picker = ImagePicker();
   final pickedImage = Rx<File?>(null);
 
-  /// Variables
+  /// Contrôleur utilisateur pour vérifier le rôle
+  final UserController userController = Get.find<UserController>();
+
+  /// Variables pour état et listes
   final isLoading = false.obs;
   final _categoryRepository = Get.put(CategoryRepository());
   RxList<CategoryModel> allCategories = <CategoryModel>[].obs;
   RxList<CategoryModel> featuredCategories = <CategoryModel>[].obs;
 
-  /// image depuis gallery
+  /// -----------------------------
+  /// Méthodes
+  /// -----------------------------
+
+  /// Ouvre la galerie pour sélectionner une image
   Future<void> pickImage() async {
-    final pickedFile =
-        await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (pickedFile != null) {
       pickedImage.value = File(pickedFile.path);
     }
   }
 
-  /// Réinitiliser formulaire
+  /// Réinitialise le formulaire après ajout ou annulation
   void clearForm() {
     nameController.clear();
     parentIdController.clear();
     isFeatured.value = false;
     pickedImage.value = null;
+    selectedParentId.value = null;
   }
 
   @override
   void onInit() {
     super.onInit();
-    fetchCategories();
+    fetchCategories(); // Charger les catégories au démarrage
   }
 
-  /// Charger tout les categories
+  /// Charger toutes les catégories depuis le repository
   Future<void> fetchCategories() async {
     try {
       isLoading.value = true;
 
       final categories = await _categoryRepository.getAllCategories();
-      // Mettre à jour liste de categories
+
+      // Mettre à jour la liste complète
       allCategories.assignAll(categories);
 
-      // Filtrer Categories en vedette
+      // Mettre à jour les catégories en vedette (max 8)
       featuredCategories.assignAll(
-          categories.where((category) => category.isFeatured).take(8).toList());
+        categories.where((cat) => cat.isFeatured).take(8).toList(),
+      );
     } catch (e) {
       TLoaders.errorSnackBar(title: 'Erreur!', message: e.toString());
     } finally {
@@ -72,71 +90,100 @@ class CategoryController extends GetxController {
     }
   }
 
-  /// Charger les catégories sélectionnés
-
+  /// Récupérer les sous-catégories d'une catégorie
   Future<List<CategoryModel>> getSubCategories(String categoryId) async {
     try {
-      // Charger category depuis repository
-      final subCategories =
-          await _categoryRepository.getSubCategories(categoryId);
-      return subCategories;
+      return await _categoryRepository.getSubCategories(categoryId);
     } catch (e) {
       TLoaders.errorSnackBar(title: 'Erreur', message: e.toString());
       return [];
     }
   }
 
-  /// Charger les produits de catégorie ou sous_catégorie
-  Future<List<ProductModel>> getCategoryProducts(
-      {required String categoryId, int limit = 4}) async {
+  /// Récupérer les produits pour une catégorie ou sous-catégorie
+  Future<List<ProductModel>> getCategoryProducts({
+    required String categoryId,
+    int limit = 4,
+  }) async {
     try {
-      // Charger produits pour un category id
-      final products = await ProductRepository.instance
+      return await ProductRepository.instance
           .getProductsForCategory(categoryId: categoryId, limit: limit);
-      return products;
     } catch (e) {
       TLoaders.errorSnackBar(title: 'Erreur', message: e.toString());
       return [];
     }
   }
 
+  /// Ajouter une nouvelle catégorie
   Future<void> addCategory() async {
-    if (!formKey.currentState!.validate()) return;
+    // 1. Validation du formulaire
+    if (!formKey.currentState!.validate()) {
+      print("Validation du formulaire échouée");
+      return;
+    }
 
-    final userRole =
-        AuthenticationRepository.instance.authUser?.userMetadata?['role'];
-    print("role $userRole");
-
-    if (userRole != 'Gérant' && userRole != 'Admin') {
-      throw "Vous n'avez pas la permission d'ajouter une catégorie.";
+    // 2. Vérifier le rôle utilisateur
+    if (userController.user.value.role != 'Gérant' &&
+        userController.user.value.role != 'Admin') {
+      TLoaders.errorSnackBar(
+        title: 'Erreur',
+        message: "Vous n'avez pas la permission d'ajouter une catégorie.",
+      );
+      return;
     }
 
     try {
       isLoading.value = true;
+      print("Début de l'ajout de catégorie...");
 
+      // 3. Définir l'image (image par défaut si non sélectionnée)
       String imageUrl = TImages.coffee;
+
       if (pickedImage.value != null) {
-        imageUrl = pickedImage.value!.path;
+        print("Image sélectionnée: ${pickedImage.value!.path}");
+        // TODO: Implémenter l'upload vers Supabase Storage
       }
 
+      // 4. Préparer parentId, null si vide
+      final String? parentId = (selectedParentId.value != null &&
+          selectedParentId.value!.isNotEmpty)
+          ? selectedParentId.value
+          : null;
+
+      // 5. Créer l'objet CategoryModel
       final newCategory = CategoryModel(
-        id: '',
+        id: '', // id généré automatiquement par Supabase
         name: nameController.text.trim(),
         image: imageUrl,
-        parentId: parentIdController.text.trim(),
+        parentId: parentId,
         isFeatured: isFeatured.value,
       );
 
-      await CategoryRepository.instance.addCategory(newCategory);
-      // Rafrâichir les catégories après ajout
+      print("Catégorie à créer: ${newCategory.toJson()}");
+
+      // 6. Ajouter la catégorie dans la base
+      await _categoryRepository.addCategory(newCategory);
+
+      // 7. Rafraîchir les catégories après ajout
       await fetchCategories();
 
-      clearForm();
-      Get.back();
+      // 8. Retourner à la page précédente
+      //Get.back(result: true);
+
+      // 9. Afficher succès
       TLoaders.successSnackBar(
-          title: 'Succès', message: 'Catégorie ajoutée avec succès');
+        title: 'Succès',
+        message:
+        'Catégorie "${nameController.text.trim()}" ajoutée avec succès',
+      );
+
+      print("Catégorie ajoutée avec succès");
+
+      // 10. Réinitialiser le formulaire
+      clearForm();
     } catch (e) {
-      TLoaders.errorSnackBar(title: 'Error', message: e.toString());
+      print("Erreur lors de l'ajout: $e");
+      TLoaders.errorSnackBar(title: 'Erreur', message: e.toString());
     } finally {
       isLoading.value = false;
     }

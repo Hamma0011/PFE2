@@ -176,7 +176,13 @@ class SettingsScreen extends StatelessWidget {
                     icon: Iconsax.add,
                     title: "Ajouter une catégorie",
                     subTitle: "Insère une nouvelle catégorie",
-                    onTap: () => Get.to(() => AddCategoryScreen()),
+                    onTap: () async {
+                      final result = await Get.to(() => AddCategoryScreen());
+                      if (result == true) {
+                        // Le formulaire a été réinitialisé
+                        print("Écran fermé et formulaire réinitialisé");
+                      }
+                    },
                   ),
                 SizedBox(height: AppSizes.spaceBtwItems),
                 if (canAddCategory())

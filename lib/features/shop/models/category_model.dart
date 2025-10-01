@@ -1,65 +1,85 @@
 class CategoryModel {
-  String id;
-  String name;
-  String image;
-  String parentId;
-  bool isFeatured;
+  final String id;
+  final String name;
+  final String image;
+  final String? parentId; // Nullable, peut être null si pas de parent
+  final bool isFeatured;
 
   CategoryModel({
     this.id = '',
     required this.name,
     required this.image,
-    required this.isFeatured,
-    this.parentId = '',
+    this.parentId, // Peut être null
+    this.isFeatured = false,
   });
 
+  /// Instance vide
   static CategoryModel empty() {
     return CategoryModel(
       id: '',
-      image: '',
       name: '',
+      image: '',
+      parentId: null,
       isFeatured: false,
-      parentId: '',
     );
   }
 
+  /// Conversion en JSON pour Supabase
+  /// Assure que parentId est null si vide
   Map<String, dynamic> toJson({bool includeId = false}) {
-    final data = {
+    final data = <String, dynamic>{
       'name': name.trim(),
       'image': image,
-      'parentId': parentId,
       'isFeatured': isFeatured,
     };
-    if (includeId) data['id'] = id;
+
+    // Si parentId est non null et non vide, l'ajouter
+    if (parentId != null && parentId!.trim().isNotEmpty) {
+      data['parentId'] = parentId;
+    } else {
+      // FORCER null pour Supabase afin d'éviter ''
+      data['parentId'] = null;
+    }
+
+    if (includeId && id.isNotEmpty) {
+      data['id'] = id;
+    }
+
     return data;
   }
 
+  /// Conversion JSON -> Model
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
-    try {
-      return CategoryModel(
-        id: json['id']?.toString() ?? '',
-        name: json['name'] ?? '',
-        image: json['image'] ?? '',
-        parentId: json['parentId'] ?? '',
-        isFeatured: json['isFeatured'] ?? false,
-      );
-    } catch (e) {
-      return CategoryModel.empty();
-    }
-  }
-
-  /// Supabase-specific: typed Postgres row → Dart object
-  factory CategoryModel.fromSupabaseRow(Map<String, dynamic> row) {
     return CategoryModel(
-      id: row['id']?.toString() ?? '', // works for uuid or int
-      name: row['name'] ?? '',
-      image: row['image'] ?? '',
-      parentId: row['parentId']?.toString() ?? '',
-      isFeatured: row['isFeatured'] ?? false, // already a bool
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      image: json['image']?.toString() ?? '',
+      // Si parentId est vide ou null, on met null
+      parentId: (json['parentId'] == null || json['parentId'].toString().trim().isEmpty)
+          ? null
+          : json['parentId'].toString(),
+      isFeatured: json['isFeatured'] is bool
+          ? json['isFeatured']
+          : (json['isFeatured']?.toString().toLowerCase() == 'true'),
     );
   }
 
-  /// Clone with updated fields (immutable style updates)
+  /// Conversion spécifique Supabase
+  factory CategoryModel.fromSupabaseRow(Map<String, dynamic> row) {
+    return CategoryModel(
+      id: row['id']?.toString() ?? '',
+      name: row['name']?.toString() ?? '',
+      image: row['image']?.toString() ?? '',
+      parentId: (row['parentId'] == null || row['parentId'].toString().trim().isEmpty)
+          ? null
+          : row['parentId'].toString(),
+      isFeatured: row['isFeatured'] is bool
+          ? row['isFeatured']
+          : (row['isFeatured']?.toString().toLowerCase() == 'true'),
+    );
+  }
+
+  /// Clone avec champs modifiables
   CategoryModel copyWith({
     String? id,
     String? name,
