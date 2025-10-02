@@ -113,7 +113,6 @@ class CategoryController extends GetxController {
       return [];
     }
   }
-
   /// Ajouter une nouvelle catégorie
   Future<void> addCategory() async {
     // 1. Validation du formulaire
@@ -137,14 +136,14 @@ class CategoryController extends GetxController {
       print("Début de l'ajout de catégorie...");
 
       // 3. Définir l'image (image par défaut si non sélectionnée)
-      String imageUrl = TImages.coffee;
+      String imageUrl = TImages.pasdimage;
 
       if (pickedImage.value != null) {
-        print("Image sélectionnée: ${pickedImage.value!.path}");
-        // TODO: Implémenter l'upload vers Supabase Storage
+        imageUrl =
+        await _categoryRepository.uploadCategoryImage(pickedImage.value!);
       }
 
-      // 4. Préparer parentId, null si vide
+      // 4. Préparer parentId (null si vide)
       final String? parentId = (selectedParentId.value != null &&
           selectedParentId.value!.isNotEmpty)
           ? selectedParentId.value
@@ -167,10 +166,7 @@ class CategoryController extends GetxController {
       // 7. Rafraîchir les catégories après ajout
       await fetchCategories();
 
-      // 8. Retourner à la page précédente
-      //Get.back(result: true);
-
-      // 9. Afficher succès
+      // 8. Message succès
       TLoaders.successSnackBar(
         title: 'Succès',
         message:
@@ -179,7 +175,7 @@ class CategoryController extends GetxController {
 
       print("Catégorie ajoutée avec succès");
 
-      // 10. Réinitialiser le formulaire
+      // 9. Réinitialiser le formulaire
       clearForm();
     } catch (e) {
       print("Erreur lors de l'ajout: $e");
@@ -187,5 +183,4 @@ class CategoryController extends GetxController {
     } finally {
       isLoading.value = false;
     }
-  }
-}
+  }}

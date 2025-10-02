@@ -28,29 +28,16 @@ class AddCategoryScreen extends StatelessWidget {
                 final imageFile = _categoryController.pickedImage.value;
                 return GestureDetector(
                   onTap: _categoryController.pickImage,
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: imageFile != null
-                        ? Image.file(
-                      imageFile,
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                    )
-                        : Image.asset(
-                      TImages.coffee,
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                    ),
+                  child: CircleAvatar(
+                    radius: 60, // Rayon du cercle (60 => diamètre 120)
+                    backgroundColor: Colors.white, // fond gris clair
+                    backgroundImage: imageFile != null
+                        ? FileImage(imageFile) as ImageProvider
+                        : AssetImage(TImages.pasdimage),
                   ),
                 );
               }),
+
               const SizedBox(height: 8),
               TextButton.icon(
                 onPressed: _categoryController.pickImage,

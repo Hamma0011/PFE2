@@ -17,6 +17,7 @@ class TImages {
   // -- Category Icons
 
   static const String coffee = "assets/icons/categories/coffee.jpg";
+  static const String pasdimage = "assets/icons/categories/pasdimage.png";
   static const String mlewi = "assets/icons/categories/mlewi.png";
   static const String boissonsCategory = "assets/icons/categories/boissons.png";
   static const String petitdej = "assets/icons/categories/petitdej.jpg";

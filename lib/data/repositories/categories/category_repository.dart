@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:caferesto/utils/exceptions/supabase_exception.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -76,4 +78,26 @@ class CategoryRepository extends GetxController {
       throw 'Quelque chose s\'est mal passé ! Veuillez réessayer.';
     }
   }
+  Future<String> uploadCategoryImage(File imageFile) async {
+    try {
+      final fileName = 'category_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final bucket = 'categories';
+
+      // Upload vers le bucket "categories"
+      await Supabase.instance.client.storage
+          .from(bucket)
+          .upload(fileName, imageFile);
+
+      // Récupérer l’URL publique
+      final publicUrl = Supabase.instance.client.storage
+          .from(bucket)
+          .getPublicUrl(fileName); // déjà un String
+
+      return publicUrl;
+    } catch (e) {
+      throw 'Erreur lors de l’upload de l’image : $e';
+    }
+  }
+
+
 }
