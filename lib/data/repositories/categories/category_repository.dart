@@ -91,13 +91,44 @@ class CategoryRepository extends GetxController {
       // Récupérer l’URL publique
       final publicUrl = Supabase.instance.client.storage
           .from(bucket)
-          .getPublicUrl(fileName); // déjà un String
+          .getPublicUrl(fileName);
 
       return publicUrl;
     } catch (e) {
       throw 'Erreur lors de l’upload de l’image : $e';
     }
   }
+  /// Modifier une catégorie
+  Future<void> updateCategory(CategoryModel category) async {
+    try {
+      await _db
+          .from(_table)
+          .update(category.toJson())
+          .eq('id', category.id);
+
+    } on PostgrestException catch (e) {
+      throw 'Erreur base de données : ${e.code} - ${e.message}';
+    } on SupabaseException catch (e) {
+      throw SupabaseException(e.code).message;
+    } catch (e) {
+      throw 'Erreur lors de la mise à jour de la catégorie : $e';
+    }
+  }
+
+  /// Supprimer une catégorie
+  Future<void> deleteCategory(String categoryId) async {
+    try {
+      await _db.from(_table).delete().eq('id', categoryId);
+
+    } on PostgrestException catch (e) {
+      throw 'Erreur base de données : ${e.code} - ${e.message}';
+    } on SupabaseException catch (e) {
+      throw SupabaseException(e.code).message;
+    } catch (e) {
+      throw 'Erreur lors de la suppression de la catégorie : $e';
+    }
+  }
+
 
 
 }

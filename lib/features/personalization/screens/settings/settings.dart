@@ -18,6 +18,7 @@ import '../../../../utils/constants/sizes.dart';
 import '../../controllers/user_controller.dart';
 import '../address/address.dart';
 import '../brands/add_brand_screen.dart';
+import '../categories/category_manager_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -173,11 +174,11 @@ class SettingsScreen extends StatelessWidget {
                 SizedBox(height: AppSizes.spaceBtwItems),
                 if (canAddCategory())
                   TSettingsMenuTile(
-                    icon: Iconsax.add,
-                    title: "Ajouter une catégorie",
+                    icon: Iconsax.category,
+                    title: "Gerer catégorie",
                     subTitle: "Insère une nouvelle catégorie",
                     onTap: () async {
-                      final result = await Get.to(() => AddCategoryScreen());
+                      final result = await Get.to(() => CategoryManagementPage());
                       if (result == true) {
                         // Le formulaire a été réinitialisé
                         print("Écran fermé et formulaire réinitialisé");
@@ -187,7 +188,7 @@ class SettingsScreen extends StatelessWidget {
                 SizedBox(height: AppSizes.spaceBtwItems),
                 if (canAddCategory())
                   TSettingsMenuTile(
-                    icon: Iconsax.add,
+                    icon: Iconsax.home,
                     title: "Ajouter une établissement",
                     subTitle: "Insère un établissement",
                     onTap: () => Get.to(() => AddBrandScreen()),

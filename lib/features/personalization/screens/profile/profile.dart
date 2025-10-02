@@ -202,7 +202,7 @@ class ProfileScreen extends GetView<UserController> {
 
                 const SizedBox(height: AppSizes.spaceBtwItems),
                 const Divider(),
-                const SizedBox(height: AppSizes.spaceBtwItems),
+                //const SizedBox(height: AppSizes.spaceBtwItems),
 
                 const TSectionHeading(
                   title: 'Infos personnelles',

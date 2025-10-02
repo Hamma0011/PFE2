@@ -183,4 +183,91 @@ class CategoryController extends GetxController {
     } finally {
       isLoading.value = false;
     }
-  }}
+  }
+  /// Modifier une catégorie
+  Future<bool> editCategory(CategoryModel category) async {
+    if (userController.user.value.role != 'Gérant' &&
+        userController.user.value.role != 'Admin') {
+      TLoaders.errorSnackBar(
+        title: 'Erreur',
+        message: "Vous n'avez pas la permission de modifier une catégorie.",
+      );
+      return false;
+    }
+
+    try {
+      isLoading.value = true;
+
+      String imageUrl = category.image;
+      if (pickedImage.value != null) {
+        imageUrl = await _categoryRepository.uploadCategoryImage(pickedImage.value!);
+      }
+
+      final updatedCategory = CategoryModel(
+        id: category.id,
+        name: nameController.text.trim().isNotEmpty
+            ? nameController.text.trim()
+            : category.name,
+        image: imageUrl,
+        parentId: selectedParentId.value ?? category.parentId,
+        isFeatured: isFeatured.value,
+      );
+
+      await _categoryRepository.updateCategory(updatedCategory);
+      await fetchCategories();
+
+      TLoaders.successSnackBar(
+        title: "Succès",
+        message: "Catégorie mise à jour avec succès.",
+      );
+
+      clearForm();
+      return true;
+    } catch (e) {
+      TLoaders.errorSnackBar(title: "Erreur", message: e.toString());
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+
+
+
+  /// Supprimer une catégorie
+  Future<void> removeCategory(String categoryId) async {
+    if (userController.user.value.role != 'Gérant' &&
+        userController.user.value.role != 'Admin') {
+      TLoaders.errorSnackBar(
+        title: 'Erreur',
+        message: "Vous n'avez pas la permission de supprimer une catégorie.",
+      );
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+
+      await _categoryRepository.deleteCategory(categoryId);
+      await fetchCategories();
+
+      TLoaders.successSnackBar(
+        title: "Succès",
+        message: "Catégorie supprimée avec succès.",
+      );
+    } catch (e) {
+      TLoaders.errorSnackBar(title: "Erreur", message: e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  String getParentName(String parentId) {
+    try {
+      final parent = allCategories.firstWhere((cat) => cat.id == parentId);
+      return parent.name;
+    } catch (e) {
+      return "Inconnue";
+    }
+  }
+
+}

@@ -1,7 +1,7 @@
 class CategoryModel {
   final String id;
   final String name;
-  final String image;
+  late final String image;
   final String? parentId; // Nullable, peut être null si pas de parent
   final bool isFeatured;
 
