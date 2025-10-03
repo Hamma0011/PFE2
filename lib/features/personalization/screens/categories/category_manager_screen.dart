@@ -824,23 +824,33 @@ class _CategoryManagementPageState extends State<CategoryManagementPage>
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey[600],
-              ),
-              child: const Text("Annuler"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _deleteCategory(category);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade600,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text("Supprimer"),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey[600],
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text("Annuler"),
+                  ),
+                ),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _deleteCategory(category);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade600,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text("Supprimer"),
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -850,19 +860,6 @@ class _CategoryManagementPageState extends State<CategoryManagementPage>
 
   void _deleteCategory(CategoryModel category) {
     categoryController.removeCategory(category.id);
-
-    // Afficher un message de succès
-    Get.snackbar(
-      "Succès",
-      "${category.name} supprimée avec succès",
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.green.shade400,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-      icon: const Icon(Icons.check_circle, color: Colors.white),
-      duration: const Duration(seconds: 3),
-    );
   }
 
   @override

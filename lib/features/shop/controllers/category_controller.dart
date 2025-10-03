@@ -114,76 +114,59 @@ class CategoryController extends GetxController {
     }
   }
   /// Ajouter une nouvelle catégorie
+  /// Ajouter une nouvelle catégorie
   Future<void> addCategory() async {
-    // 1. Validation du formulaire
     if (!formKey.currentState!.validate()) {
-      print("Validation du formulaire échouée");
       return;
     }
 
-    // 2. Vérifier le rôle utilisateur
     if (userController.user.value.role != 'Gérant' &&
         userController.user.value.role != 'Admin') {
-      TLoaders.errorSnackBar(
-        title: 'Erreur',
-        message: "Vous n'avez pas la permission d'ajouter une catégorie.",
-      );
+      showErrorSnackbar("Vous n'avez pas la permission d'ajouter une catégorie.");
       return;
     }
 
     try {
       isLoading.value = true;
-      print("Début de l'ajout de catégorie...");
 
-      // 3. Définir l'image (image par défaut si non sélectionnée)
       String imageUrl = TImages.pasdimage;
-
       if (pickedImage.value != null) {
-        imageUrl =
-        await _categoryRepository.uploadCategoryImage(pickedImage.value!);
+        imageUrl = await _categoryRepository.uploadCategoryImage(pickedImage.value!);
       }
 
-      // 4. Préparer parentId (null si vide)
       final String? parentId = (selectedParentId.value != null &&
           selectedParentId.value!.isNotEmpty)
           ? selectedParentId.value
           : null;
 
-      // 5. Créer l'objet CategoryModel
       final newCategory = CategoryModel(
-        id: '', // id généré automatiquement par Supabase
+        id: '',
         name: nameController.text.trim(),
         image: imageUrl,
         parentId: parentId,
         isFeatured: isFeatured.value,
       );
 
-      print("Catégorie à créer: ${newCategory.toJson()}");
-
-      // 6. Ajouter la catégorie dans la base
       await _categoryRepository.addCategory(newCategory);
-
-      // 7. Rafraîchir les catégories après ajout
       await fetchCategories();
 
-      // 8. Message succès
-      TLoaders.successSnackBar(
-        title: 'Succès',
-        message:
+      clearForm();
+
+      /// ⚡ Retourner à l'écran précédent AVANT le snackbar
+      Get.back();
+
+      /// ⚡ Le snackbar va s'afficher dans l'écran précédent
+      showSuccessSnackbar(
         'Catégorie "${nameController.text.trim()}" ajoutée avec succès',
       );
 
-      print("Catégorie ajoutée avec succès");
-
-      // 9. Réinitialiser le formulaire
-      clearForm();
     } catch (e) {
-      print("Erreur lors de l'ajout: $e");
-      TLoaders.errorSnackBar(title: 'Erreur', message: e.toString());
+      showErrorSnackbar(e.toString());
     } finally {
       isLoading.value = false;
     }
   }
+
   /// Modifier une catégorie
   /// Modifier une catégorie - Version améliorée
   Future<bool> editCategory(CategoryModel originalCategory) async {
@@ -234,33 +217,54 @@ class CategoryController extends GetxController {
 
 
 
-  /// Supprimer une catégorie
+
+  void showSuccessSnackbar(String message) {
+    Get.snackbar(
+      "Succès",
+      message,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.green.shade400,
+      colorText: Colors.white,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      icon: const Icon(Icons.check_circle, color: Colors.white),
+      duration: const Duration(seconds: 2),
+    );
+  }
+
+  void showErrorSnackbar(String error) {
+    Get.snackbar(
+      "Erreur",
+      error,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.red.shade400,
+      colorText: Colors.white,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+      icon: const Icon(Icons.error, color: Colors.white),
+      duration: const Duration(seconds: 3),
+    );
+  }
+
+   /// Supprimer une catégorie la méthode removeCategory pour utiliser votre snackbar
   Future<void> removeCategory(String categoryId) async {
     if (userController.user.value.role != 'Gérant' &&
         userController.user.value.role != 'Admin') {
-      TLoaders.errorSnackBar(
-        title: 'Erreur',
-        message: "Vous n'avez pas la permission de supprimer une catégorie.",
-      );
+      showErrorSnackbar("Vous n'avez pas la permission de supprimer une catégorie.");
       return;
     }
 
     try {
       isLoading.value = true;
-
       await _categoryRepository.deleteCategory(categoryId);
       await fetchCategories();
 
-      TLoaders.successSnackBar(
-        title: "Succès",
-        message: "Catégorie supprimée avec succès.",
-      );
+      showSuccessSnackbar("Catégorie supprimée avec succès");
     } catch (e) {
-      TLoaders.errorSnackBar(title: "Erreur", message: e.toString());
+      showErrorSnackbar(e.toString());
     } finally {
       isLoading.value = false;
-    }
-  }
+    }}
   String getParentName(String parentId) {
     try {
       final parent = allCategories.firstWhere((cat) => cat.id == parentId);

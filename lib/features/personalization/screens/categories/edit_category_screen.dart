@@ -134,7 +134,6 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> with SingleTick
       ),
     );
   }
-
   Future<void> _saveCategory() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -142,14 +141,20 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> with SingleTick
       final success = await categoryController.editCategory(widget.category);
 
       if (success) {
-        _showSuccessSnackbar();
+        // Utilise la méthode du contrôleur
+        categoryController.showSuccessSnackbar(
+            "Catégorie mise à jour avec succès"
+        );
         Get.back();
       }
     } catch (e) {
-      _showErrorSnackbar(e.toString());
+      // Utilise la méthode du contrôleur
+      categoryController.showErrorSnackbar(e.toString());
     }
-  }
+  }}
 
+
+/*
   void _showSuccessSnackbar() {
     Get.snackbar(
       "Succès",
@@ -182,7 +187,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> with SingleTick
     _animationController?.dispose();
     super.dispose();
   }
-}
+}*/
 /*
 import 'dart:io';
 import 'package:flutter/material.dart';
