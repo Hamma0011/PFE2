@@ -198,8 +198,9 @@ class CategoryController extends GetxController {
       );
 
       await _categoryRepository.updateCategory(updatedCategory);
-      await fetchCategories();
 
+      Get.back();
+      await fetchCategories();
       TLoaders.successSnackBar(
         title: "Succès",
         message: "Catégorie '${updatedCategory.name}' mise à jour avec succès.",

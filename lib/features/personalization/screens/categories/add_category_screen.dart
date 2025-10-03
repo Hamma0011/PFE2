@@ -10,7 +10,9 @@ class AddCategoryScreen extends StatelessWidget {
   final CategoryController _categoryController = Get.find<CategoryController>();
 
   @override
+
   Widget build(BuildContext context) {
+    _categoryController.clearForm();
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: TAppBar(
