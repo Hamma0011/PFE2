@@ -185,7 +185,8 @@ class CategoryController extends GetxController {
     }
   }
   /// Modifier une catégorie
-  Future<bool> editCategory(CategoryModel category) async {
+  /// Modifier une catégorie - Version améliorée
+  Future<bool> editCategory(CategoryModel originalCategory) async {
     if (userController.user.value.role != 'Gérant' &&
         userController.user.value.role != 'Admin') {
       TLoaders.errorSnackBar(
@@ -198,19 +199,19 @@ class CategoryController extends GetxController {
     try {
       isLoading.value = true;
 
-      String imageUrl = category.image;
+      // Gestion de l'image
+      String imageUrl = originalCategory.image;
       if (pickedImage.value != null) {
         imageUrl = await _categoryRepository.uploadCategoryImage(pickedImage.value!);
       }
 
+      // Utiliser les valeurs du contrôleur (déjà mises à jour par l'écran)
       final updatedCategory = CategoryModel(
-        id: category.id,
-        name: nameController.text.trim().isNotEmpty
-            ? nameController.text.trim()
-            : category.name,
+        id: originalCategory.id,
+        name: nameController.text.trim(), // Utilise directement le contrôleur
         image: imageUrl,
-        parentId: selectedParentId.value ?? category.parentId,
-        isFeatured: isFeatured.value,
+        parentId: selectedParentId.value, // Utilise directement le contrôleur
+        isFeatured: isFeatured.value, // Utilise directement le contrôleur
       );
 
       await _categoryRepository.updateCategory(updatedCategory);
@@ -218,7 +219,7 @@ class CategoryController extends GetxController {
 
       TLoaders.successSnackBar(
         title: "Succès",
-        message: "Catégorie mise à jour avec succès.",
+        message: "Catégorie '${updatedCategory.name}' mise à jour avec succès.",
       );
 
       clearForm();
@@ -230,7 +231,6 @@ class CategoryController extends GetxController {
       isLoading.value = false;
     }
   }
-
 
 
 
@@ -269,5 +269,10 @@ class CategoryController extends GetxController {
       return "Inconnue";
     }
   }
-
+  void initializeForEdit(CategoryModel category) {
+    nameController.text = category.name;
+    selectedParentId.value = category.parentId;
+    isFeatured.value = category.isFeatured;
+    pickedImage.value = null;
+  }
 }
