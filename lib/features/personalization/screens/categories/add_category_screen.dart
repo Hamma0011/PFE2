@@ -12,6 +12,8 @@ class AddCategoryScreen extends StatelessWidget {
   @override
 
   Widget build(BuildContext context) {
+    // Vider le formulaire à chaque ouverture
+
     _categoryController.clearForm();
     return Scaffold(
       backgroundColor: Colors.grey[50],
