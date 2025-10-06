@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../../../../data/repositories/horaire/horaire_repository.dart';
 import '../../../shop/controllers/product/horaire_controller.dart';
 import '../../../shop/models/horaire_model.dart';
-import '../../../shop/models/jour_semaine.dart';
 import 'horaire_tile.dart';
 
 class GestionHorairesEtablissement extends StatefulWidget {
@@ -19,10 +18,12 @@ class GestionHorairesEtablissement extends StatefulWidget {
   });
 
   @override
-  State<GestionHorairesEtablissement> createState() => _GestionHorairesEtablissementState();
+  State<GestionHorairesEtablissement> createState() =>
+      _GestionHorairesEtablissementState();
 }
 
-class _GestionHorairesEtablissementState extends State<GestionHorairesEtablissement> {
+class _GestionHorairesEtablissementState
+    extends State<GestionHorairesEtablissement> {
   late final HoraireController _horaireController;
   bool _initialisationEnCours = true;
   bool _sauvegardeEnCours = false;
@@ -55,7 +56,8 @@ class _GestionHorairesEtablissementState extends State<GestionHorairesEtablissem
         print('📝 Horaires initialisés pour création');
       } else {
         await _horaireController.fetchHoraires(widget.etablissementId);
-        print('📥 Horaires chargés depuis la base: ${_horaireController.horaires.length}');
+        print(
+            '📥 Horaires chargés depuis la base: ${_horaireController.horaires.length}');
       }
     } catch (e) {
       print('❌ Erreur initialisation horaires: $e');
@@ -80,17 +82,16 @@ class _GestionHorairesEtablissementState extends State<GestionHorairesEtablissem
     try {
       final success = widget.isCreation
           ? await _horaireController.createHoraires(
-        widget.etablissementId,
-        _horaireController.horaires,
-      )
+              widget.etablissementId,
+              _horaireController.horaires,
+            )
           : await _horaireController.updateAllHoraires(
-        widget.etablissementId,
-        _horaireController.horaires,
-      );
+              widget.etablissementId,
+              _horaireController.horaires,
+            );
 
       if (success) {
         print('Sauvegarde réussie');
-
 
         // Attendre un peu pour que l'utilisateur voie le message
         await Future.delayed(const Duration(milliseconds: 1500));
@@ -189,7 +190,8 @@ class _GestionHorairesEtablissementState extends State<GestionHorairesEtablissem
     );
   }
 
-  void _showSuccessSnackbar(String message, {Color backgroundColor = Colors.green}) {
+  void _showSuccessSnackbar(String message,
+      {Color backgroundColor = Colors.green}) {
     Get.snackbar(
       'Succès',
       message,
@@ -230,7 +232,8 @@ class _GestionHorairesEtablissementState extends State<GestionHorairesEtablissem
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: isOpenNow ? Colors.green[100] : Colors.red[100],
                       borderRadius: BorderRadius.circular(20),
@@ -347,17 +350,17 @@ class _GestionHorairesEtablissementState extends State<GestionHorairesEtablissem
               ),
               child: _sauvegardeEnCours
                   ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                   : const Text(
-                'Sauvegarder',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+                      'Sauvegarder',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
             ),
           ),
         ],
@@ -426,94 +429,96 @@ class _GestionHorairesEtablissementState extends State<GestionHorairesEtablissem
       ),
       body: _initialisationEnCours
           ? const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Chargement des horaires...'),
-          ],
-        ),
-      )
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Chargement des horaires...'),
+                ],
+              ),
+            )
           : Column(
-        children: [
-          // Bannière d'information
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: Colors.blue[50],
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.info, color: Colors.blue[700]),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Configuration des horaires',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                // Bannière d'information
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  color: Colors.blue[50],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.info, color: Colors.blue[700]),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Configuration des horaires',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.isCreation
+                            ? 'Définissez les horaires d\'ouverture de votre établissement'
+                            : 'Modifiez les horaires existants de votre établissement',
+                        style: TextStyle(
+                          color: Colors.blue[700],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+
+                // Résumé
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _buildHoraireSummary(),
+                ),
+
+                // En-tête de la liste
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Jours de la semaine',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Obx(() {
+                        final nbJoursOuverts =
+                            _horaireController.nombreJoursOuverts;
+                        return Text(
+                          '$nbJoursOuverts/7 jours ouverts',
+                          style: TextStyle(
+                            color:
+                                nbJoursOuverts > 0 ? Colors.green : Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+
                 const SizedBox(height: 8),
-                Text(
-                  widget.isCreation
-                      ? 'Définissez les horaires d\'ouverture de votre établissement'
-                      : 'Modifiez les horaires existants de votre établissement',
-                  style: TextStyle(
-                    color: Colors.blue[700],
-                    fontSize: 12,
-                  ),
-                ),
+
+                // Liste des horaires
+                Expanded(child: _buildHorairesList()),
+
+                // Boutons d'action
+                _buildActionButtons(),
               ],
             ),
-          ),
-
-          // Résumé
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: _buildHoraireSummary(),
-          ),
-
-          // En-tête de la liste
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Jours de la semaine',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                Obx(() {
-                  final nbJoursOuverts = _horaireController.nombreJoursOuverts;
-                  return Text(
-                    '$nbJoursOuverts/7 jours ouverts',
-                    style: TextStyle(
-                      color: nbJoursOuverts > 0 ? Colors.green : Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Liste des horaires
-          Expanded(child: _buildHorairesList()),
-
-          // Boutons d'action
-          _buildActionButtons(),
-        ],
-      ),
     );
   }
 }

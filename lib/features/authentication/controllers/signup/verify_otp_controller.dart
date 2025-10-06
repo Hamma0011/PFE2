@@ -20,7 +20,8 @@ class OTPVerificationController extends GetxController {
   Timer? _timer;
 
   final isLoading = false.obs;
-
+  final RxBool isSignupFlow = true.obs;
+  Map<String, dynamic> userData = {};
   @override
   void onClose() {
     _timer?.cancel();
@@ -43,6 +44,11 @@ class OTPVerificationController extends GetxController {
         timer.cancel();
       }
     });
+  }
+
+  void initializeFlow(bool isSignup, Map<String, dynamic> data) {
+    isSignupFlow.value = isSignup;
+    userData = data;
   }
 
   /// Vérification de l’OTP

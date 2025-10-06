@@ -1,8 +1,8 @@
 import 'dart:io';
 
+import 'package:caferesto/utils/constants/colors.dart';
+import 'package:caferesto/utils/helpers/helper_functions.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import '../../../../shop/controllers/category_controller.dart';
 import '../../../../../utils/constants/image_strings.dart';
 import '../../../../shop/models/category_model.dart';
 
@@ -113,7 +113,6 @@ class CategoryNameField extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 8),
@@ -121,8 +120,6 @@ class CategoryNameField extends StatelessWidget {
           controller: controller,
           decoration: InputDecoration(
             hintText: "Entrez le nom",
-            filled: true,
-            fillColor: Colors.grey[50],
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -136,7 +133,8 @@ class CategoryNameField extends StatelessWidget {
               borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
             ),
             prefixIcon: Icon(Icons.category, color: Colors.grey[400]),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
           validator: validator ?? _defaultValidator,
         ),
@@ -177,15 +175,12 @@ class CategoryParentDropdown extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String?>(
           value: selectedParentId,
           decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.grey[50],
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -199,7 +194,8 @@ class CategoryParentDropdown extends StatelessWidget {
               borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
             ),
             prefixIcon: Icon(Icons.folder, color: Colors.grey[400]),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
           items: _buildDropdownItems(),
           onChanged: onChanged,
@@ -216,13 +212,16 @@ class CategoryParentDropdown extends StatelessWidget {
       ),
     ];
 
-    final filteredCategories = categories.where((cat) => cat.id != excludeCategoryId).toList();
+    final filteredCategories =
+        categories.where((cat) => cat.id != excludeCategoryId).toList();
 
     items.addAll(
-      filteredCategories.map((cat) => DropdownMenuItem<String?>(
-        value: cat.id,
-        child: Text(cat.name),
-      )).toList(),
+      filteredCategories
+          .map((cat) => DropdownMenuItem<String?>(
+                value: cat.id,
+                child: Text(cat.name),
+              ))
+          .toList(),
     );
 
     return items;
@@ -244,7 +243,6 @@ class CategoryFeaturedSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -253,14 +251,12 @@ class CategoryFeaturedSwitch extends StatelessWidget {
           "Catégorie en vedette",
           style: TextStyle(
             fontWeight: FontWeight.w500,
-            color: Colors.black87,
           ),
         ),
         subtitle: Text(
           "Afficher dans les catégories populaires",
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[600],
           ),
         ),
         value: value,
@@ -303,7 +299,7 @@ class CategorySubmitButton extends StatelessWidget {
           shadowColor: Colors.blue.withOpacity(0.3),
         ).copyWith(
           elevation: MaterialStateProperty.resolveWith<double>(
-                (Set<MaterialState> states) {
+            (Set<MaterialState> states) {
               if (states.contains(MaterialState.pressed)) return 0;
               return 8;
             },
@@ -311,28 +307,28 @@ class CategorySubmitButton extends StatelessWidget {
         ),
         child: isLoading
             ? const SizedBox(
-          height: 20,
-          width: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Colors.white,
-          ),
-        )
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
             : Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 22),
-            const SizedBox(width: 12),
-            Text(
-              text,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 22),
+                  const SizedBox(width: 12),
+                  Text(
+                    text,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -349,9 +345,10 @@ class CategoryFormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = THelperFunctions.isDarkMode(context);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: dark ? AppColors.eerieBlack : AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(

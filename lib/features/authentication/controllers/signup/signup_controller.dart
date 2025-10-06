@@ -12,13 +12,11 @@ import '../../screens/signup.widgets/widgets/signup_form.dart';
 class SignupController extends GetxController {
   static SignupController get instance => Get.find();
 
-  // final hidePassword = true.obs;
   final privacyPolicy = true.obs;
   final email = TextEditingController();
   final lastName = TextEditingController();
   final firstName = TextEditingController();
   final username = TextEditingController();
-  // final password = TextEditingController();
   final phoneNumber = TextEditingController();
   final Rx<UserRole> selectedRole = UserRole.Client.obs;
   final Rx<UserGender> selectedGender = UserGender.Homme.obs;
@@ -97,10 +95,11 @@ class SignupController extends GetxController {
         message: "Un code de vérification a été envoyé à votre adresse email.",
       );
 
-      // Navigate to OTP verification screen
+      // Naviger vers OTP verification screen
       Get.off(() => OTPVerificationScreen(
             email: email.text.trim(),
             userData: userData,
+            isSignupFlow :true,
           ));
     } catch (e) {
       TFullScreenLoader.stopLoading();

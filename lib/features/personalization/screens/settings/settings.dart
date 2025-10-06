@@ -1,7 +1,6 @@
 import 'package:caferesto/common/widgets/appbar/appbar.dart';
 import 'package:caferesto/common/widgets/custom_shapes/containers/primary_header_container.dart';
 import 'package:caferesto/common/widgets/texts/section_heading.dart';
-import 'package:caferesto/features/personalization/screens/categories/add_category_screen.dart';
 import 'package:caferesto/features/personalization/screens/profile/profile.dart';
 import 'package:caferesto/features/shop/screens/order/order.dart';
 import 'package:caferesto/utils/constants/colors.dart';
@@ -12,13 +11,9 @@ import 'package:iconsax/iconsax.dart';
 import '../../../../common/widgets/list_tiles/settings_menu_tile.dart';
 import '../../../../common/widgets/list_tiles/user_profile_tile.dart';
 import '../../../../data/repositories/authentication/authentication_repository.dart';
-import '../../../../data/repositories/categories/category_repository.dart';
-import '../../../../data/repositories/product/product_repository.dart';
 import '../../../../utils/constants/sizes.dart';
 import '../../controllers/user_controller.dart';
 import '../address/address.dart';
-import '../brands/add_brand_screen.dart';
-import '../brands/edit_brand_screen.dart';
 import '../brands/mon_tablissemen_screen.dart';
 import '../categories/category_manager_screen.dart';
 
@@ -27,35 +22,11 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = ProductRepository.instance;
-    final categoryController = CategoryRepository.instance;
     final userController = Get.put(UserController());
 
     bool canAddCategory() {
       final role = userController.user.value.role;
       return role == 'Gérant' || role == 'Admin';
-    }
-
-    void uploadDummyData() async {
-      try {
-        await controller.uploadDummyData();
-        Get.snackbar("Succès", "Données factices chargées avec succès",
-            snackPosition: SnackPosition.BOTTOM);
-      } catch (e) {
-        Get.snackbar("Erreur", e.toString(),
-            snackPosition: SnackPosition.BOTTOM);
-      }
-    }
-
-    void uploadDummyCategories() async {
-      try {
-        await categoryController.uploadDummyCategories();
-        Get.snackbar("Succès", "Catégories factices chargées avec succès",
-            snackPosition: SnackPosition.BOTTOM);
-      } catch (e) {
-        Get.snackbar("Erreur", e.toString(),
-            snackPosition: SnackPosition.BOTTOM);
-      }
     }
 
     return Scaffold(
@@ -120,16 +91,6 @@ class SettingsScreen extends StatelessWidget {
                     icon: Iconsax.bag_tick,
                     onTap: () => Get.to(() => const OrderScreen())),
                 TSettingsMenuTile(
-                    title: "Compte Bancaire",
-                    subTitle: "Mes informations bancaires",
-                    icon: Iconsax.bank,
-                    onTap: () {}),
-                TSettingsMenuTile(
-                    title: "Mes Vouchers",
-                    subTitle: "Mes bons de réduction",
-                    icon: Iconsax.discount_shape,
-                    onTap: () {}),
-                TSettingsMenuTile(
                     title: "Notifications",
                     subTitle: "Notifications de l'application",
                     icon: Iconsax.notification,
@@ -150,37 +111,21 @@ class SettingsScreen extends StatelessWidget {
                     subTitle:
                         "Définir une recommandation à partir de ma position",
                     trailing: Switch(value: true, onChanged: (value) {})),
-                TSettingsMenuTile(
-                    icon: Iconsax.security_user,
-                    title: "Géolocalisation",
-                    subTitle:
-                        "Résultats de recherche sans danger pour tous les âges",
-                    trailing: Switch(value: false, onChanged: (value) {})),
-                TSettingsMenuTile(
-                    icon: Iconsax.image,
-                    title: "Qualité image HD",
-                    subTitle: "Définir la qualité d'image haute définition",
-                    trailing: Switch(value: false, onChanged: (value) {})),
 
                 /// Développeur , upload
                 SizedBox(height: AppSizes.spaceBtwSections),
                 TSectionHeading(
                     title: "Développement", showActionButton: false),
                 SizedBox(height: AppSizes.spaceBtwItems),
-                TSettingsMenuTile(
-                  icon: Iconsax.document_upload,
-                  title: "Charger des données factices",
-                  subTitle: "Insère des données test dans l'application",
-                  onTap: uploadDummyData,
-                ),
                 SizedBox(height: AppSizes.spaceBtwItems),
                 if (canAddCategory())
                   TSettingsMenuTile(
                     icon: Iconsax.category,
-                    title: "Gerer catégorie",
-                    subTitle: "Insère une nouvelle catégorie",
+                    title: "Gérer catégorie",
+                    subTitle: "Ajouter, modifier ou supprimer  une catégorie",
                     onTap: () async {
-                      final result = await Get.to(() => CategoryManagementPage());
+                      final result =
+                          await Get.to(() => CategoryManagementPage());
                       if (result == true) {
                         // Le formulaire a été réinitialisé
                         print("Écran fermé et formulaire réinitialisé");
@@ -193,12 +138,7 @@ class SettingsScreen extends StatelessWidget {
                     icon: Iconsax.home,
                     title: "Ajouter une établissement",
                     subTitle: "Insère un établissement",
-                    //onTap: () => Get.to(() => AddEtablissementScreen()),
-                    // Dans votre écran de liste des établissements
-                    //onTap: () => Get.to(() => EditEtablissementScreen(etablissement: etablissement)),
                     onTap: () => Get.to(() => MonEtablissementScreen()),
-
-
                   ),
                 SizedBox(
                   height: AppSizes.spaceBtwSections,

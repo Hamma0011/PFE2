@@ -1,6 +1,7 @@
 import 'package:caferesto/features/personalization/screens/categories/widgets/category_form_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../common/widgets/appbar/appbar.dart';
 import '../../../shop/controllers/category_controller.dart';
 import '../../../shop/models/category_model.dart';
 
@@ -13,7 +14,8 @@ class EditCategoryScreen extends StatefulWidget {
   State<EditCategoryScreen> createState() => _EditCategoryScreenState();
 }
 
-class _EditCategoryScreenState extends State<EditCategoryScreen> with SingleTickerProviderStateMixin {
+class _EditCategoryScreenState extends State<EditCategoryScreen>
+    with SingleTickerProviderStateMixin {
   final CategoryController categoryController = Get.find();
   final _formKey = GlobalKey<FormState>();
   AnimationController? _animationController;
@@ -45,22 +47,17 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> with SingleTick
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: _buildAppBar(),
       body: Obx(() => _buildBody()),
     );
   }
 
-  AppBar _buildAppBar() {
-    return AppBar(
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      foregroundColor: Colors.black87,
+  PreferredSizeWidget _buildAppBar() {
+    return TAppBar(
       title: const Text(
         "Modifier Catégorie",
-        style: TextStyle(fontWeight: FontWeight.w600),
       ),
-      centerTitle: true,
+      showBackArrow: true,
     );
   }
 
@@ -71,9 +68,9 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> with SingleTick
 
     return _fadeAnimation != null
         ? FadeTransition(
-      opacity: _fadeAnimation!,
-      child: _buildForm(),
-    )
+            opacity: _fadeAnimation!,
+            child: _buildForm(),
+          )
         : const SizedBox.shrink();
   }
 
@@ -112,28 +109,29 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> with SingleTick
                   ),
                   const SizedBox(height: 24),
                   Obx(() => CategoryFeaturedSwitch(
-                    value: categoryController.isFeatured.value,
-                    onChanged: (value) {
-                      categoryController.isFeatured.value = value;
-                    },
-                  )),
+                        value: categoryController.isFeatured.value,
+                        onChanged: (value) {
+                          categoryController.isFeatured.value = value;
+                        },
+                      )),
                 ],
               ),
               const SizedBox(height: 32),
 
               // Bouton Sauvegarder
               Obx(() => CategorySubmitButton(
-                isLoading: categoryController.isLoading.value,
-                onPressed: _saveCategory,
-                text: "Enregistrer les modifications",
-                icon: Icons.check_circle_outline,
-              )),
+                    isLoading: categoryController.isLoading.value,
+                    onPressed: _saveCategory,
+                    text: "Enregistrer les modifications",
+                    icon: Icons.check_circle_outline,
+                  )),
             ],
           ),
         ),
       ),
     );
   }
+
   Future<void> _saveCategory() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -142,17 +140,16 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> with SingleTick
 
       if (success) {
         // Utilise la méthode du contrôleur
-        categoryController.showSuccessSnackbar(
-            "Catégorie mise à jour avec succès"
-        );
+        categoryController
+            .showSuccessSnackbar("Catégorie mise à jour avec succès");
         Get.back();
       }
     } catch (e) {
       // Utilise la méthode du contrôleur
       categoryController.showErrorSnackbar(e.toString());
     }
-  }}
-
+  }
+}
 
 /*
   void _showSuccessSnackbar() {

@@ -8,22 +8,25 @@ import '../../../utils/device/device_utility.dart';
 import '../../../utils/helpers/helper_functions.dart';
 
 class TAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const TAppBar({
-    super.key,
-    this.title,
-    this.showBackArrow = false,
-    this.leadingIcon,
-    this.actions,
-    this.leadingOnPressed,
-    this.customBackNavigation,
-  });
+  const TAppBar(
+      {super.key,
+      this.title,
+      this.showBackArrow = false,
+      this.leadingIcon,
+      this.actions,
+      this.leadingOnPressed,
+      this.customBackNavigation,
+      this.doubleAppBarHeight = false ,
+      this.bottomWidget});
 
   final Widget? title;
+  final PreferredSizeWidget? bottomWidget;
   final bool showBackArrow;
   final IconData? leadingIcon;
   final List<Widget>? actions;
   final VoidCallback? leadingOnPressed;
   final VoidCallback? customBackNavigation;
+  final bool doubleAppBarHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +34,7 @@ class TAppBar extends StatelessWidget implements PreferredSizeWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: AppSizes.md),
       child: AppBar(
+        bottom: bottomWidget,
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -59,5 +63,6 @@ class TAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(TDeviceUtils.getAppBarHeight());
+  Size get preferredSize =>
+      Size.fromHeight(doubleAppBarHeight == false ? TDeviceUtils.getAppBarHeight() : 140 );
 }

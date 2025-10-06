@@ -18,22 +18,22 @@ class Horaire {
   });
 
   factory Horaire.fromJson(Map<String, dynamic> json) => Horaire(
-    id: json['id'],
-    etablissementId: json['etablissement_id'],
-    jour: JourSemaine.fromString(json['jour']),
-    ouverture: json['ouverture'],
-    fermeture: json['fermeture'],
-    estOuvert: json['est_ouvert'] ?? false, // Par défaut fermé
-  );
+        id: json['id'],
+        etablissementId: json['etablissement_id'],
+        jour: JourSemaine.fromString(json['jour']),
+        ouverture: json['ouverture'],
+        fermeture: json['fermeture'],
+        estOuvert: json['est_ouvert'] ?? false, // Par défaut fermé
+      );
 
   Map<String, dynamic> toJson() => {
-    if (id != null) 'id': id,
-    'etablissement_id': etablissementId,
-    'jour': jour.valeur,
-    'ouverture': ouverture,
-    'fermeture': fermeture,
-    'est_ouvert': estOuvert,
-  };
+        if (id != null) 'id': id,
+        'etablissement_id': etablissementId,
+        'jour': jour.valeur,
+        'ouverture': ouverture,
+        'fermeture': fermeture,
+        'est_ouvert': estOuvert,
+      };
 
   // Méthode utilitaire pour vérifier si l'horaire est valide
   bool get isValid => estOuvert && ouverture != null && fermeture != null;

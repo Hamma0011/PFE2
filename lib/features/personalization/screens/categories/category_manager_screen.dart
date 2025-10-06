@@ -1,262 +1,10 @@
-/*import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:caferesto/features/shop/models/category_model.dart';
-import 'package:caferesto/features/shop/controllers/category_controller.dart';
-
-import 'add_category_screen.dart';
-import 'edit_category_screen.dart';
-
-class CategoryManagementPage extends StatefulWidget {
-  const CategoryManagementPage({super.key});
-
-  @override
-  State<CategoryManagementPage> createState() => _CategoryManagementPageState();
-}
-
-class _CategoryManagementPageState extends State<CategoryManagementPage>
-    with SingleTickerProviderStateMixin {
-  final CategoryController categoryController = Get.put(CategoryController());
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Gestion des catégories"),
-        centerTitle: true,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: "Catégories"),
-            Tab(text: "Sous-catégories"),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: "Ajouter une catégorie",
-            onPressed: () {
-              Get.to(() => AddCategoryScreen());
-            },
-          ),
-        ],
-      ),
-      body: Obx(() {
-        if (categoryController.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (categoryController.allCategories.isEmpty) {
-          return const Center(child: Text("Aucune catégorie trouvée"));
-        }
-
-        return TabBarView(
-          controller: _tabController,
-          children: [
-            // Onglet Catégories principales
-            _buildCategoryList(
-              categoryController.allCategories
-                  .where((c) => c.parentId == null)
-                  .toList(),
-            ),
-
-            // Onglet Sous-catégories
-            _buildCategoryList(
-              categoryController.allCategories
-                  .where((c) => c.parentId != null)
-                  .toList(),
-            ),
-          ],
-        );
-      }),
-    );
-  }
-
-  Widget _buildCategoryList(List<CategoryModel> categories) {
-    return ListView.builder(
-      itemCount: categories.length,
-      itemBuilder: (context, index) {
-        final CategoryModel category = categories[index];
-
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(category.image),
-              onBackgroundImageError: (_, __) =>
-              const Icon(Icons.category),
-            ),
-            title: Text(category.name),
-            subtitle: category.parentId != null
-                ? Text(
-                "Sous-catégorie de : ${categoryController.getParentName(category.parentId!)}")
-                : const Text("Catégorie principale"),
-            onTap: () {
-              _showCategoryOptions(context, category);
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCategoryOptions(BuildContext context, CategoryModel category) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // En-tête avec les informations de la catégorie
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(category.image),
-                    onBackgroundImageError: (_, __) =>
-                    const Icon(Icons.category),
-                    radius: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          category.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        category.parentId != null
-                            ? Text(
-                          "Sous-catégorie de : ${categoryController.getParentName(category.parentId!)}",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        )
-                            : Text(
-                          "Catégorie principale",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Divider(height: 1),
-              const SizedBox(height: 16),
-              // Boutons Éditer et Supprimer
-              Row(
-                children: [
-                  // Bouton Éditer
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Get.to(() => EditCategoryScreen(category: category));
-                        },
-                        icon: const Icon(Icons.edit, color: Colors.white),
-                        label: const Text("Éditer"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Bouton Supprimer
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 8),
-                      child: ElevatedButton.icon(
-                        onPressed: () => _showDeleteConfirmationDialog(context, category),
-                        icon: const Icon(Icons.delete, color: Colors.white),
-                        label: const Text("Supprimer"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // Méthode pour afficher la dialogue de confirmation de suppression
-  void _showDeleteConfirmationDialog(BuildContext context, CategoryModel category) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Confirmer la suppression"),
-          content: const Text("Êtes-vous sûr de vouloir supprimer cette catégorie ? Cette action est irréversible."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Annuler"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Fermer la dialogue
-                Navigator.pop(context); // Fermer le bottom sheet
-                categoryController.removeCategory(category.id);
-                // Afficher un message de succès
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("${category.name} supprimée avec succès"),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-              child: const Text(
-                "Supprimer",
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}*/
+import 'package:caferesto/utils/helpers/helper_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:caferesto/features/shop/models/category_model.dart';
 import 'package:caferesto/features/shop/controllers/category_controller.dart';
-//import 'package:caferesto/utils/constants/image_strings.dart';
+import '../../../../common/widgets/appbar/appbar.dart';
+import '../../../../utils/constants/colors.dart';
 import 'add_category_screen.dart';
 import 'edit_category_screen.dart';
 
@@ -282,27 +30,20 @@ class _CategoryManagementPageState extends State<CategoryManagementPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: _buildAppBar(),
       body: _buildBody(),
       floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
-  AppBar _buildAppBar() {
-    return AppBar(
+  PreferredSizeWidget _buildAppBar() {
+    return TAppBar(
       title: const Text(
         "Gestion des catégories",
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
-        ),
       ),
-      centerTitle: true,
-      backgroundColor: Colors.white,
-      elevation: 1,
-      shadowColor: Colors.black12,
-      bottom: _buildTabBar(),
+      showBackArrow: true,
+      doubleAppBarHeight: true,
+      bottomWidget: _buildTabBar(),
     );
   }
 
@@ -429,7 +170,8 @@ class _CategoryManagementPageState extends State<CategoryManagementPage>
     );
   }
 
-  Widget _buildCategoryList(List<CategoryModel> categories, {required bool isSubcategory}) {
+  Widget _buildCategoryList(List<CategoryModel> categories,
+      {required bool isSubcategory}) {
     if (categories.isEmpty) {
       return _buildEmptyTabState(isSubcategory);
     }
@@ -463,13 +205,17 @@ class _CategoryManagementPageState extends State<CategoryManagementPage>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  isSubcategory ? Icons.subdirectory_arrow_right : Icons.category,
+                  isSubcategory
+                      ? Icons.subdirectory_arrow_right
+                      : Icons.category,
                   size: 60,
                   color: Colors.grey[300],
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  isSubcategory ? "Aucune sous-catégorie" : "Aucune catégorie principale",
+                  isSubcategory
+                      ? "Aucune sous-catégorie"
+                      : "Aucune catégorie principale",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -495,10 +241,12 @@ class _CategoryManagementPageState extends State<CategoryManagementPage>
   }
 
   Widget _buildCategoryCard(CategoryModel category, int index) {
+    final dark = THelperFunctions.isDarkMode(context);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: dark ? AppColors.eerieBlack : AppColors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -561,7 +309,8 @@ class _CategoryManagementPageState extends State<CategoryManagementPage>
               child: Center(
                 child: CircularProgressIndicator(
                   value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
                       : null,
                   strokeWidth: 2,
                 ),
@@ -657,10 +406,11 @@ class _CategoryManagementPageState extends State<CategoryManagementPage>
   }
 
   Widget _buildBottomSheetContent(CategoryModel category) {
+    final dark = THelperFunctions.isDarkMode(context);
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: dark ? AppColors.eerieBlack : AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(

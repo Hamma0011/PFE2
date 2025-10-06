@@ -4,6 +4,7 @@ import 'package:caferesto/utils/constants/text_strings.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../utils/helpers/helper_functions.dart';
+
 class TLoginHeader extends StatelessWidget {
   const TLoginHeader({
     super.key,
@@ -15,9 +16,6 @@ class TLoginHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const SizedBox(height: AppSizes.xl),
-        const SizedBox(height: AppSizes.xl),
-//
         Image(
           height: 200,
           image: AssetImage(dark ? TImages.darkAppLogo : TImages.lightAppLogo),

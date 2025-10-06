@@ -14,23 +14,38 @@ class TFullScreenLoader {
   ///   - animation: The Lottie animation to be shown.
   static void openLoadingDialog(String text, String animation) {
     showDialog(
-      context:
-          Get.overlayContext!, // Use Get.overlayContext for overlay dialogs
-      barrierDismissible:
-          false, // The dialog can't be dismissed by tapping outside it
+      context: Get.overlayContext!,
+      barrierDismissible: false,
       builder: (_) => PopScope(
-        canPop: false, // Disable popping with the back button
-        child: Container(
-          color: THelperFunctions.isDarkMode(Get.context!)
+        canPop: false,
+        child: Scaffold(
+          backgroundColor: THelperFunctions.isDarkMode(Get.context!)
               ? AppColors.dark
               : AppColors.white,
-          width: double.infinity,
-          height: double.infinity,
-          child: Column(
-            children: [
-              const SizedBox(height: 250), // Adjust the spacing as needed
-              TAnimationLoaderWidget(text: text, animation: animation),
-            ],
+          body: SafeArea(
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              alignment: Alignment.center,
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Add some padding for very small screens
+                    Padding(
+                      padding: EdgeInsets.all(
+                          MediaQuery.of(Get.context!).size.height * 0.02),
+                      child: TAnimationLoaderWidget(
+                        text: text,
+                        animation: animation,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -40,7 +55,6 @@ class TFullScreenLoader {
   /// Stop the currently open loading dialog.
   /// This method doesn't return anything.
   static stopLoading() {
-    Navigator.of(Get.overlayContext!)
-        .pop(); // Close the dialog using the Navigator
+    Navigator.of(Get.overlayContext!).pop();
   }
 }

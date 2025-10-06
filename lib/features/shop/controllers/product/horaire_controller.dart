@@ -14,18 +14,21 @@ class HoraireController extends GetxController {
   // Initialiser les horaires vides pour un établissement donné
   void initializeHoraires(String etablissementId) {
     try {
-      final horairesVides = JourSemaine.values.map((jour) => Horaire(
-        etablissementId: etablissementId,
-        jour: jour,
-        estOuvert: false,
-        ouverture: null, // null quand fermé
-        fermeture: null, // null quand fermé
-      )).toList();
+      final horairesVides = JourSemaine.values
+          .map((jour) => Horaire(
+                etablissementId: etablissementId,
+                jour: jour,
+                estOuvert: false,
+                ouverture: null, // null quand fermé
+                fermeture: null, // null quand fermé
+              ))
+          .toList();
 
       horaires.assignAll(horairesVides);
       hasHoraires.value = false;
       horaires.refresh();
-      print('✅ ${horaires.length} horaires initialisés pour l\'établissement $etablissementId');
+      print(
+          '✅ ${horaires.length} horaires initialisés pour l\'établissement $etablissementId');
     } catch (e) {
       print('❌ Erreur initialisation horaires: $e');
     }
@@ -33,13 +36,15 @@ class HoraireController extends GetxController {
 
   // Initialiser les horaires vides pour la création
   void initializeHorairesForCreation() {
-    final horairesVides = JourSemaine.values.map((jour) => Horaire(
-      etablissementId: 'temp_id',
-      jour: jour,
-      estOuvert: false,
-      ouverture: null, // null quand fermé
-      fermeture: null, // null quand fermé
-    )).toList();
+    final horairesVides = JourSemaine.values
+        .map((jour) => Horaire(
+              etablissementId: 'temp_id',
+              jour: jour,
+              estOuvert: false,
+              ouverture: null, // null quand fermé
+              fermeture: null, // null quand fermé
+            ))
+        .toList();
 
     horaires.assignAll(horairesVides);
     hasHoraires.value = false;
@@ -48,20 +53,25 @@ class HoraireController extends GetxController {
   }
 
   // Créer les horaires pour un établissement
-  Future<bool> createHoraires(String etablissementId, List<Horaire> horairesList) async {
+  Future<bool> createHoraires(
+      String etablissementId, List<Horaire> horairesList) async {
     try {
       isLoading.value = true;
 
-      final horairesAvecVraiId = horairesList.map((horaire) => horaire.copyWith(
-        etablissementId: etablissementId,
-      )).toList();
+      final horairesAvecVraiId = horairesList
+          .map((horaire) => horaire.copyWith(
+                etablissementId: etablissementId,
+              ))
+          .toList();
 
-      await repository.createHorairesForEtablissement(etablissementId, horairesAvecVraiId);
+      await repository.createHorairesForEtablissement(
+          etablissementId, horairesAvecVraiId);
       horaires.assignAll(horairesAvecVraiId);
       hasHoraires.value = horairesAvecVraiId.any((h) => h.isValid);
       horaires.refresh();
 
-      print('✅ ${horairesAvecVraiId.length} horaires créés pour l\'établissement $etablissementId');
+      print(
+          '✅ ${horairesAvecVraiId.length} horaires créés pour l\'établissement $etablissementId');
       return true;
     } catch (e) {
       _logError('création des horaires', e);
@@ -75,14 +85,16 @@ class HoraireController extends GetxController {
   Future<List<Horaire>?> fetchHoraires(String etablissementId) async {
     try {
       isLoading.value = true;
-      final horairesList = await repository.getHorairesByEtablissement(etablissementId);
+      final horairesList =
+          await repository.getHorairesByEtablissement(etablissementId);
 
       // MAINTENANT: On aura toujours des horaires (soit existants, soit créés par défaut)
       horaires.assignAll(horairesList);
       hasHoraires.value = horairesList.any((h) => h.isValid);
       horaires.refresh();
 
-      print('✅ ${horairesList.length} horaires chargés pour l\'établissement $etablissementId');
+      print(
+          '✅ ${horairesList.length} horaires chargés pour l\'établissement $etablissementId');
 
       // Vérification
       if (horairesList.length != 7) {
@@ -92,7 +104,8 @@ class HoraireController extends GetxController {
 
         // Debug: Afficher l'état de chaque jour
         for (final horaire in horairesList) {
-          print('   📅 ${horaire.jour.valeur}: ${horaire.estOuvert ? "Ouvert" : "Fermé"} ${horaire.estOuvert ? "(${horaire.ouverture} - ${horaire.fermeture})" : ""}');
+          print(
+              '   📅 ${horaire.jour.valeur}: ${horaire.estOuvert ? "Ouvert" : "Fermé"} ${horaire.estOuvert ? "(${horaire.ouverture} - ${horaire.fermeture})" : ""}');
         }
       }
 
@@ -128,9 +141,11 @@ class HoraireController extends GetxController {
       // Sauvegarder en base si l'horaire a un ID
       if (horaire.id != null) {
         await repository.updateHoraire(horaire);
-        print('✅ Horaire ${horaire.jour.valeur} mis à jour (ID: ${horaire.id})');
+        print(
+            '✅ Horaire ${horaire.jour.valeur} mis à jour (ID: ${horaire.id})');
       } else {
-        print('ℹ️ Horaire ${horaire.jour.valeur} mis à jour localement (pas d\'ID)');
+        print(
+            'ℹ️ Horaire ${horaire.jour.valeur} mis à jour localement (pas d\'ID)');
       }
 
       return true;
@@ -141,7 +156,8 @@ class HoraireController extends GetxController {
   }
 
   // Mettre à jour tous les horaires
-  Future<bool> updateAllHoraires(String etablissementId, List<Horaire> newHoraires) async {
+  Future<bool> updateAllHoraires(
+      String etablissementId, List<Horaire> newHoraires) async {
     try {
       isLoading.value = true;
       await repository.updateAllHoraires(etablissementId, newHoraires);
@@ -150,7 +166,8 @@ class HoraireController extends GetxController {
       horaires.refresh();
 
       final nbJoursOuverts = nombreJoursOuverts;
-      print('✅ ${newHoraires.length} horaires mis à jour ($nbJoursOuverts jours ouverts)');
+      print(
+          '✅ ${newHoraires.length} horaires mis à jour ($nbJoursOuverts jours ouverts)');
       return true;
     } catch (e) {
       _logError('mise à jour de tous les horaires', e);
@@ -169,7 +186,8 @@ class HoraireController extends GetxController {
       hasHoraires.value = false;
       horaires.refresh();
 
-      print('✅ Tous les horaires supprimés pour l\'établissement $etablissementId');
+      print(
+          '✅ Tous les horaires supprimés pour l\'établissement $etablissementId');
       return true;
     } catch (e) {
       _logError('suppression des horaires', e);
@@ -195,7 +213,8 @@ class HoraireController extends GetxController {
   }
 
   // Nombre total de jours ouverts
-  int get nombreJoursOuverts => horaires.where((horaire) => horaire.isValid).length;
+  int get nombreJoursOuverts =>
+      horaires.where((horaire) => horaire.isValid).length;
 
   // Vérifier si l'établissement est ouvert maintenant
   bool get isOpenNow {
@@ -203,12 +222,14 @@ class HoraireController extends GetxController {
 
     final now = DateTime.now();
     final today = _getJourSemaineFromDateTime(now);
-    final currentTime = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final currentTime =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     final horaireAujourdhui = getHoraireForDay(today);
     if (horaireAujourdhui == null || !horaireAujourdhui.isValid) return false;
 
-    return _isTimeBetween(currentTime, horaireAujourdhui.ouverture!, horaireAujourdhui.fermeture!);
+    return _isTimeBetween(currentTime, horaireAujourdhui.ouverture!,
+        horaireAujourdhui.fermeture!);
   }
 
   // Obtenir les horaires d'aujourd'hui
@@ -236,14 +257,22 @@ class HoraireController extends GetxController {
   // Fonctions utilitaires privées
   JourSemaine _getJourSemaineFromDateTime(DateTime date) {
     switch (date.weekday) {
-      case 1: return JourSemaine.lundi;
-      case 2: return JourSemaine.mardi;
-      case 3: return JourSemaine.mercredi;
-      case 4: return JourSemaine.jeudi;
-      case 5: return JourSemaine.vendredi;
-      case 6: return JourSemaine.samedi;
-      case 7: return JourSemaine.dimanche;
-      default: return JourSemaine.lundi;
+      case 1:
+        return JourSemaine.lundi;
+      case 2:
+        return JourSemaine.mardi;
+      case 3:
+        return JourSemaine.mercredi;
+      case 4:
+        return JourSemaine.jeudi;
+      case 5:
+        return JourSemaine.vendredi;
+      case 6:
+        return JourSemaine.samedi;
+      case 7:
+        return JourSemaine.dimanche;
+      default:
+        return JourSemaine.lundi;
     }
   }
 

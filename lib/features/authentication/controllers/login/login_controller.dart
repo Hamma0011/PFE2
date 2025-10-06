@@ -65,6 +65,7 @@ class LoginController extends GetxController {
       Get.to(() => OTPVerificationScreen(
             email: email.text.trim(),
             userData: {},
+            isSignupFlow: false,
           ));
     } catch (e) {
       TFullScreenLoader.stopLoading();

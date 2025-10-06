@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../data/repositories/etablissement/etablissement_repository.dart';
 import '../../../../data/repositories/horaire/horaire_repository.dart';
 import '../../../shop/controllers/etablissement_controller.dart';
 import '../../../shop/controllers/product/horaire_controller.dart';
@@ -8,7 +7,6 @@ import '../../../shop/models/etablissement_model.dart';
 import '../../../shop/models/horaire_model.dart';
 import '../../../shop/models/jour_semaine.dart';
 import '../../../shop/models/statut_etablissement_model.dart';
-import '../../controllers/user_controller.dart';
 import '../etablisment/gestion_horaires_screen.dart';
 
 class EditEtablissementScreen extends StatefulWidget {
@@ -17,7 +15,8 @@ class EditEtablissementScreen extends StatefulWidget {
   const EditEtablissementScreen({super.key, required this.etablissement});
 
   @override
-  State<EditEtablissementScreen> createState() => _EditEtablissementScreenState();
+  State<EditEtablissementScreen> createState() =>
+      _EditEtablissementScreenState();
 }
 
 class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
@@ -27,9 +26,9 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
 
-  final EtablissementController _etablissementController = Get.find<EtablissementController>();
+  final EtablissementController _etablissementController =
+      Get.find<EtablissementController>();
   late final HoraireController _horaireController;
-  final UserController _userController = Get.find<UserController>();
 
   bool _isLoading = false;
   bool _horairesLoaded = false;
@@ -44,11 +43,9 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
 
   void _initializeHoraireController() {
     try {
-      // Essayer de trouver le contrôleur existant d'abord
       _horaireController = Get.find<HoraireController>();
       print('✅ Contrôleur horaire existant récupéré dans EditEtablissement');
     } catch (e) {
-      // Sinon le créer
       _horaireController = Get.put(HoraireController(HoraireRepository()));
       print('🆕 Nouveau contrôleur horaire créé dans EditEtablissement');
     }
@@ -58,7 +55,8 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
     _nameController.text = widget.etablissement.name;
     _addressController.text = widget.etablissement.address;
     _latitudeController.text = widget.etablissement.latitude?.toString() ?? '';
-    _longitudeController.text = widget.etablissement.longitude?.toString() ?? '';
+    _longitudeController.text =
+        widget.etablissement.longitude?.toString() ?? '';
   }
 
   Future<void> _loadHoraires() async {
@@ -69,13 +67,12 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
         _horairesLoaded = false;
       });
 
-      // Recharger depuis la base de données
       await _horaireController.fetchHoraires(widget.etablissement.id!);
 
-      // Debug: Vérifier ce qui a été chargé
       print('📊 Horaires chargés: ${_horaireController.horaires.length}');
       for (var horaire in _horaireController.horaires) {
-        print('  - ${horaire.jour.valeur}: ${horaire.estOuvert ? "${horaire.ouverture}-${horaire.fermeture}" : "FERMÉ"}');
+        print(
+            '  - ${horaire.jour.valeur}: ${horaire.estOuvert ? "${horaire.ouverture}-${horaire.fermeture}" : "FERMÉ"}');
       }
       print('🎯 Jours ouverts: ${_horaireController.nombreJoursOuverts}');
       print('🔍 HasHoraires: ${_horaireController.hasHoraires.value}');
@@ -88,7 +85,7 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
     } catch (e) {
       print('❌ Erreur chargement horaires: $e');
       setState(() {
-        _horairesLoaded = true; // Marquer comme chargé même en cas d'erreur
+        _horairesLoaded = true;
       });
     }
   }
@@ -98,29 +95,20 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       print('🎯 Navigation vers GestionHoraires...');
 
       final result = await Get.to(() => GestionHorairesEtablissement(
-        etablissementId: widget.etablissement.id!,
-        nomEtablissement: widget.etablissement.name,
-        isCreation: false,
-      ));
+            etablissementId: widget.etablissement.id!,
+            nomEtablissement: widget.etablissement.name,
+            isCreation: false,
+          ));
 
       print('🔙 Retour de GestionHoraires avec result: $result');
 
-      // Vérifier si la sauvegarde a réussi
       if (result == true) {
         print('🔄 Rechargement des horaires après modification...');
-
-        // Recharger les horaires depuis la base de données
         await _loadHoraires();
 
-        // Message de confirmation
-        Get.snackbar(
-          'Succès',
-          'Horaires mis à jour avec succès',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 2),
-        );
+        // ✅ REMPLACÉ: Utilisation de la méthode du contrôleur
+        _etablissementController
+            .showSuccessSnackbar('Horaires mis à jour avec succès');
 
         print('✅ Horaires rafraîchis dans l\'interface');
       } else {
@@ -128,20 +116,22 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       }
     } catch (e) {
       print('❌ Erreur lors de la gestion des horaires: $e');
-      Get.snackbar(
-        'Erreur',
-        'Impossible de modifier les horaires: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      // ✅ REMPLACÉ: Utilisation de la méthode du contrôleur
+      _etablissementController
+          .showErrorSnackbar('Impossible de modifier les horaires: $e');
     }
   }
 
   void _updateEtablissement() async {
-    if (!_formKey.currentState!.validate()) return;
+    print('🔄 Début de _updateEtablissement');
+
+    if (!_formKey.currentState!.validate()) {
+      print('❌ Validation du formulaire échouée');
+      return;
+    }
 
     setState(() => _isLoading = true);
+    print('⏳ Chargement activé');
 
     try {
       final updateData = <String, dynamic>{
@@ -149,7 +139,6 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
         'address': _addressController.text.trim(),
       };
 
-      // Ajouter les coordonnées si renseignées
       if (_latitudeController.text.isNotEmpty) {
         updateData['latitude'] = double.tryParse(_latitudeController.text);
       }
@@ -157,39 +146,42 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
         updateData['longitude'] = double.tryParse(_longitudeController.text);
       }
 
+      print('📤 Envoi des données: $updateData');
+
       final success = await _etablissementController.updateEtablissement(
         widget.etablissement.id!,
         updateData,
       );
+      Get.back(result: true);
+
+      print('✅ Réponse reçue: $success');
 
       if (success) {
-        Get.snackbar(
-          'Succès',
-          'Établissement mis à jour',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-        Get.back();
+        print('🎉 Succès - Affichage snackbar');
+
+        // ✅ REMPLACÉ: Utilisation de la méthode du contrôleur
+        _etablissementController
+            .showSuccessSnackbar('Établissement mis à jour avec succès');
+
+        print('⏳ Attente avant fermeture...');
+        await Future.delayed(const Duration(milliseconds: 1500));
+
+        print('🚪 Fermeture de l écran');
+        //Get.back(result: true);
       } else {
-        Get.snackbar(
-          'Erreur',
-          'Échec de la mise à jour',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        print('❌ Échec - Affichage erreur');
+        // ✅ REMPLACÉ: Utilisation de la méthode du contrôleur
+        _etablissementController.showErrorSnackbar('Échec de la mise à jour');
       }
     } catch (e) {
-      Get.snackbar(
-        'Erreur',
-        'Erreur: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      print('💥 Erreur catch: $e');
+      // ✅ REMPLACÉ: Utilisation de la méthode du contrôleur
+      _etablissementController.showErrorSnackbar('Erreur: $e');
     } finally {
-      setState(() => _isLoading = false);
+      print('🏁 Fin du processus');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -291,27 +283,26 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // Aperçu des horaires
           ...horairesOuverts.take(3).map(_buildHorairePreview).toList(),
-
           if (horairesOuverts.length > 3)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 '... et ${horairesOuverts.length - 3} autres jours',
-                style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                style: const TextStyle(
+                    fontStyle: FontStyle.italic, color: Colors.grey),
               ),
             ),
         ] else ...[
           _buildAucunHoraire(),
         ],
-
         const SizedBox(height: 16),
-
         ElevatedButton.icon(
           onPressed: _gererHoraires,
           icon: const Icon(Icons.schedule),
-          label: Text(hasHoraires ? 'Modifier les horaires' : 'Configurer les horaires'),
+          label: Text(hasHoraires
+              ? 'Modifier les horaires'
+              : 'Configurer les horaires'),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.orange[50],
             foregroundColor: Colors.orange[800],
@@ -346,13 +337,20 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
 
   String _getJourAbrege(JourSemaine jour) {
     switch (jour) {
-      case JourSemaine.lundi: return 'LUN';
-      case JourSemaine.mardi: return 'MAR';
-      case JourSemaine.mercredi: return 'MER';
-      case JourSemaine.jeudi: return 'JEU';
-      case JourSemaine.vendredi: return 'VEN';
-      case JourSemaine.samedi: return 'SAM';
-      case JourSemaine.dimanche: return 'DIM';
+      case JourSemaine.lundi:
+        return 'LUN';
+      case JourSemaine.mardi:
+        return 'MAR';
+      case JourSemaine.mercredi:
+        return 'MER';
+      case JourSemaine.jeudi:
+        return 'JEU';
+      case JourSemaine.vendredi:
+        return 'VEN';
+      case JourSemaine.samedi:
+        return 'SAM';
+      case JourSemaine.dimanche:
+        return 'DIM';
     }
   }
 
@@ -372,164 +370,182 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              // Carte statut
-              Card(
-                color: _getStatutColor(widget.etablissement.statut).withOpacity(0.1),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info,
-                        color: _getStatutColor(widget.etablissement.statut),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    // Carte statut
+                    Card(
+                      color: _getStatutColor(widget.etablissement.statut)
+                          .withOpacity(0.1),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
                           children: [
-                            Text(
-                              'Statut',
-                              style: Theme.of(context).textTheme.bodySmall,
+                            Icon(
+                              Icons.info,
+                              color:
+                                  _getStatutColor(widget.etablissement.statut),
                             ),
-                            Text(
-                              _getStatutText(widget.etablissement.statut),
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: _getStatutColor(widget.etablissement.statut),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Statut',
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  Text(
+                                    _getStatutText(widget.etablissement.statut),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: _getStatutColor(
+                                              widget.etablissement.statut),
+                                        ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Informations de l'établissement
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nom de l\'établissement',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.business),
-                ),
-                validator: (v) => v == null || v.isEmpty ? 'Veuillez entrer le nom' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Adresse complète',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_on),
-                ),
-                maxLines: 2,
-                validator: (v) => v == null || v.isEmpty ? 'Veuillez entrer l\'adresse' : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Coordonnées GPS
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _latitudeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Latitude',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.gps_fixed),
-                      ),
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _longitudeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Longitude',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.gps_fixed),
-                      ),
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Les coordonnées GPS sont optionnelles',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
-              // Section Horaires
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time, color: Colors.orange),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Horaires d\'ouverture',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                    // Informations de l'établissement
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nom de l\'établissement',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.business),
+                      ),
+                      validator: (v) => v == null || v.isEmpty
+                          ? 'Veuillez entrer le nom'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _addressController,
+                      decoration: const InputDecoration(
+                        labelText: 'Adresse complète',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.location_on),
+                      ),
+                      maxLines: 2,
+                      validator: (v) => v == null || v.isEmpty
+                          ? 'Veuillez entrer l\'adresse'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Coordonnées GPS
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _latitudeController,
+                            decoration: const InputDecoration(
+                              labelText: 'Latitude',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.gps_fixed),
                             ),
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
                           ),
-                        ],
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _longitudeController,
+                            decoration: const InputDecoration(
+                              labelText: 'Longitude',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.gps_fixed),
+                            ),
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Les coordonnées GPS sont optionnelles',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Section Horaires
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.access_time,
+                                    color: Colors.orange),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Horaires d\'ouverture',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _buildHorairesSection(),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      _buildHorairesSection(),
-                    ],
-                  ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Boutons d'action
+                    Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: _updateEtablissement,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            minimumSize: const Size(double.infinity, 50),
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text(
+                            'Enregistrer les modifications',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton(
+                          onPressed: () => Get.back(),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            minimumSize: const Size(double.infinity, 50),
+                          ),
+                          child: const Text('Annuler'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 32),
-
-              // Boutons d'action
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: _updateEtablissement,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text(
-                      'Enregistrer les modifications',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: () => Get.back(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text('Annuler'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 

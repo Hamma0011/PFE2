@@ -9,7 +9,7 @@ enum ProductType { single, variable }
 enum TexAppSizes { small, medium, large }
 
 enum OrderStatus { processing, shipped, delivered, pending }
-/*
+
 enum PaymentMethods {
   paypal,
   googlePay,
@@ -20,4 +20,4 @@ enum PaymentMethods {
   paystack,
   razorPay,
   paytm
-}*/
+}

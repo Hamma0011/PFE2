@@ -178,28 +178,7 @@ class TSignupform extends StatelessWidget {
               },
             ),
           ),
-          // const SizedBox(height: AppSizes.spaceBtwInputFields),
 
-          /// Mot de passe
-          /* Obx(
-            () => TextFormField(
-              controller: controller.password,
-              validator: (value) => TValidator.validatePassword(value),
-              obscureText: controller.hidePassword.value,
-              decoration: InputDecoration(
-                labelText: TTexts.password,
-                prefixIcon: const Icon(Iconsax.password_check),
-                suffixIcon: IconButton(
-                    onPressed: () => controller.hidePassword.value =
-                        !controller.hidePassword.value,
-                    icon: Icon(
-                      controller.hidePassword.value
-                          ? Iconsax.eye_slash
-                          : Iconsax.eye,
-                    )),
-              ),
-            ),
-          ),*/
           const SizedBox(height: AppSizes.spaceBtwSections),
 
           /// Case à cocher Conditions d'utilisation

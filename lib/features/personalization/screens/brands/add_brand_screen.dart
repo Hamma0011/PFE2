@@ -1,92 +1,3 @@
-/*import 'package:caferesto/features/shop/controllers/brand_controller.dart';
-import 'package:caferesto/utils/constants/sizes.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import '../../../../common/widgets/appbar/appbar.dart';
-import '../../../../utils/constants/image_strings.dart';
-
-class AddBrandScreen extends StatelessWidget {
-  AddBrandScreen({super.key});
-
-  final BrandController _brandController = Get.put(BrandController());
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: TAppBar(
-        title: Text('Ajouter une établissement'),
-        showBackArrow: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _brandController.formKey,
-          child: Column(
-            children: [
-              Obx(() {
-                final imageFile = _brandController.pickedImage.value;
-                return GestureDetector(
-                  onTap: _brandController.pickImage,
-                  child: imageFile != null
-                      ? Image.file(
-                          imageFile,
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                        )
-                      : Image.asset(
-                          TImages.coffee,
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                        ),
-                );
-              }),
-              SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: _brandController.pickImage,
-                icon: Icon(Icons.image),
-                label: Text('Choisir une image'),
-              ),
-              TextFormField(
-                controller: _brandController.nameController,
-                decoration:
-                    InputDecoration(labelText: "Nom de l'établissement"),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un nom';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(
-                height: AppSizes.spaceBtwInputFields,
-              ),
-              Obx(() => CheckboxListTile(
-                    title: Text('Etablissement en vedette'),
-                    value: _brandController.isFeatured.value,
-                    onChanged: (val) {
-                      _brandController.isFeatured.value = val ?? false;
-                    },
-                  )),
-              SizedBox(height: 20),
-              Obx(() => _brandController.isLoading.value
-                  ? CircularProgressIndicator()
-                  : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _brandController.addBrand,
-                        child: Text('Ajouter Etablissement'),
-                      ),
-                    )),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}*/
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/repositories/etablissement/etablissement_repository.dart';
@@ -108,7 +19,8 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
 
-  final EtablissementController _controller = EtablissementController(EtablissementRepository());
+  final EtablissementController _controller =
+      EtablissementController(EtablissementRepository());
   final UserController userController = Get.find<UserController>();
 
   bool _isLoading = false;
@@ -123,13 +35,10 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
     final user = userController.user.value;
     if (user.role != 'Gérant') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Seuls les Gérants peuvent créer des établissements'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        Navigator.of(context).pop();
+        _controller.showErrorSnackbar(
+            'Seuls les Gérants peuvent créer des établissements');
+
+        Get.back();
       });
     }
   }
@@ -144,8 +53,12 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
     final etab = Etablissement(
       name: _nameController.text.trim(),
       address: _addressController.text.trim(),
-      latitude: _latitudeController.text.isNotEmpty ? double.tryParse(_latitudeController.text) : null,
-      longitude: _longitudeController.text.isNotEmpty ? double.tryParse(_longitudeController.text) : null,
+      latitude: _latitudeController.text.isNotEmpty
+          ? double.tryParse(_latitudeController.text)
+          : null,
+      longitude: _longitudeController.text.isNotEmpty
+          ? double.tryParse(_longitudeController.text)
+          : null,
       idOwner: user.id,
     );
 
@@ -156,13 +69,14 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
       if (id != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Établissement créé avec succès. Vous pourrez ajouter les horaires plus tard.'),
+            content: Text(
+                'Établissement créé avec succès. Vous pourrez ajouter les horaires plus tard.'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 4),
           ),
         );
         _formKey.currentState!.reset();
-        Navigator.of(context).pop();
+        Get.back(result: true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -259,10 +173,13 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
                             ),
                             Text(
                               'Gérant',
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
                             ),
                           ],
                         ),
@@ -280,7 +197,8 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
                   labelText: 'Nom de l\'établissement',
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) => v == null || v.isEmpty ? 'Veuillez entrer le nom' : null,
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Veuillez entrer le nom' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -290,7 +208,9 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 2,
-                validator: (v) => v == null || v.isEmpty ? 'Veuillez entrer l\'adresse' : null,
+                validator: (v) => v == null || v.isEmpty
+                    ? 'Veuillez entrer l\'adresse'
+                    : null,
               ),
               const SizedBox(height: 16),
 
@@ -309,9 +229,12 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
                           children: [
                             Text(
                               'Horaires d\'ouverture',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -337,7 +260,8 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
                         labelText: 'Latitude',
                         border: OutlineInputBorder(),
                       ),
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -348,7 +272,8 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
                         labelText: 'Longitude',
                         border: OutlineInputBorder(),
                       ),
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
                 ],
@@ -364,15 +289,15 @@ class _AddEtablissementScreenState extends State<AddEtablissementScreen> {
               _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
-                onPressed: _addEtablissement,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text(
-                  'Créer l\'établissement',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
+                      onPressed: _addEtablissement,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text(
+                        'Créer l\'établissement',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
             ],
           ),
         ),

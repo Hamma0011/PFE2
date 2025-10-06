@@ -3,7 +3,6 @@ import '../../../shop/models/horaire_model.dart';
 import '../../../shop/models/jour_semaine.dart';
 import 'heure_button.dart';
 
-
 class HoraireTileAmeliore extends StatefulWidget {
   final Horaire horaire;
   final Function(Horaire) onChanged;
@@ -62,7 +61,8 @@ class _HoraireTileAmelioreState extends State<HoraireTileAmeliore> {
     );
 
     if (heureChoisie != null) {
-      final heureFormattee = '${heureChoisie.hour.toString().padLeft(2, '0')}:${heureChoisie.minute.toString().padLeft(2, '0')}';
+      final heureFormattee =
+          '${heureChoisie.hour.toString().padLeft(2, '0')}:${heureChoisie.minute.toString().padLeft(2, '0')}';
 
       // Validation des heures
       if (!_validerHeures(isOuverture, heureFormattee)) {
@@ -85,14 +85,16 @@ class _HoraireTileAmelioreState extends State<HoraireTileAmeliore> {
       final nouvelleOuverture = _timeToMinutes(nouvelleHeure);
       final fermeture = _timeToMinutes(_currentHoraire.fermeture!);
       if (nouvelleOuverture >= fermeture) {
-        _showErreurHeures('L\'heure d\'ouverture doit être avant l\'heure de fermeture');
+        _showErreurHeures(
+            'L\'heure d\'ouverture doit être avant l\'heure de fermeture');
         return false;
       }
     } else if (!isOuverture && _currentHoraire.ouverture != null) {
       final ouverture = _timeToMinutes(_currentHoraire.ouverture!);
       final nouvelleFermeture = _timeToMinutes(nouvelleHeure);
       if (nouvelleFermeture <= ouverture) {
-        _showErreurHeures('L\'heure de fermeture doit être après l\'heure d\'ouverture');
+        _showErreurHeures(
+            'L\'heure de fermeture doit être après l\'heure d\'ouverture');
         return false;
       }
     }
@@ -124,13 +126,20 @@ class _HoraireTileAmelioreState extends State<HoraireTileAmeliore> {
 
   String _getJourAbrege(JourSemaine jour) {
     switch (jour) {
-      case JourSemaine.lundi: return 'LUN';
-      case JourSemaine.mardi: return 'MAR';
-      case JourSemaine.mercredi: return 'MER';
-      case JourSemaine.jeudi: return 'JEU';
-      case JourSemaine.vendredi: return 'VEN';
-      case JourSemaine.samedi: return 'SAM';
-      case JourSemaine.dimanche: return 'DIM';
+      case JourSemaine.lundi:
+        return 'LUN';
+      case JourSemaine.mardi:
+        return 'MAR';
+      case JourSemaine.mercredi:
+        return 'MER';
+      case JourSemaine.jeudi:
+        return 'JEU';
+      case JourSemaine.vendredi:
+        return 'VEN';
+      case JourSemaine.samedi:
+        return 'SAM';
+      case JourSemaine.dimanche:
+        return 'DIM';
     }
   }
 
@@ -169,7 +178,9 @@ class _HoraireTileAmelioreState extends State<HoraireTileAmeliore> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: _currentHoraire.estOuvert ? couleurJour : Colors.grey[300],
+                    color: _currentHoraire.estOuvert
+                        ? couleurJour
+                        : Colors.grey[300],
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
@@ -179,7 +190,9 @@ class _HoraireTileAmelioreState extends State<HoraireTileAmeliore> {
                         Text(
                           _getJourAbrege(_currentHoraire.jour),
                           style: TextStyle(
-                            color: _currentHoraire.estOuvert ? Colors.white : Colors.grey[600],
+                            color: _currentHoraire.estOuvert
+                                ? Colors.white
+                                : Colors.grey[600],
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),
@@ -188,7 +201,9 @@ class _HoraireTileAmelioreState extends State<HoraireTileAmeliore> {
                         Icon(
                           _currentHoraire.estOuvert ? Icons.check : Icons.close,
                           size: 14,
-                          color: _currentHoraire.estOuvert ? Colors.white : Colors.grey[600],
+                          color: _currentHoraire.estOuvert
+                              ? Colors.white
+                              : Colors.grey[600],
                         ),
                       ],
                     ),
@@ -206,7 +221,9 @@ class _HoraireTileAmelioreState extends State<HoraireTileAmeliore> {
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
-                          color: _currentHoraire.estOuvert ? Colors.black87 : Colors.grey[600],
+                          color: _currentHoraire.estOuvert
+                              ? Colors.black87
+                              : Colors.grey[600],
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -215,7 +232,9 @@ class _HoraireTileAmelioreState extends State<HoraireTileAmeliore> {
                             ? '${_currentHoraire.ouverture ?? "09:00"} - ${_currentHoraire.fermeture ?? "18:00"}' // CORRECTION: valeurs par défaut
                             : 'Fermé',
                         style: TextStyle(
-                          color: _currentHoraire.estOuvert ? Colors.green[700] : Colors.grey[500],
+                          color: _currentHoraire.estOuvert
+                              ? Colors.green[700]
+                              : Colors.grey[500],
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -242,7 +261,8 @@ class _HoraireTileAmelioreState extends State<HoraireTileAmeliore> {
                   Expanded(
                     child: HeureButtonAmeliore(
                       label: 'Heure d\'ouverture',
-                      heure: _currentHoraire.ouverture ?? '09:00', // CORRECTION: valeur par défaut
+                      heure: _currentHoraire.ouverture ??
+                          '09:00', // CORRECTION: valeur par défaut
                       onTap: () => _selectHeure(context, true),
                       couleur: couleurJour,
                     ),
@@ -251,7 +271,8 @@ class _HoraireTileAmelioreState extends State<HoraireTileAmeliore> {
                   Expanded(
                     child: HeureButtonAmeliore(
                       label: 'Heure de fermeture',
-                      heure: _currentHoraire.fermeture ?? '18:00', // CORRECTION: valeur par défaut
+                      heure: _currentHoraire.fermeture ??
+                          '18:00', // CORRECTION: valeur par défaut
                       onTap: () => _selectHeure(context, false),
                       couleur: couleurJour,
                     ),

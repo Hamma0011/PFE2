@@ -1,5 +1,5 @@
 
-import 'package:caferesto/features/shop/models/statut_etablissement_model.dart';
+import 'statut_etablissement_model.dart';
 
 import 'horaire_model.dart';
 

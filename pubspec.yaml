@@ -80,8 +80,9 @@ dependencies:
   searchable_listview: ^2.19.3
 
 flutter_native_splash:
-  color: "#42a5f5"
-  image: assets/logos/app_logo_dark.png
+  color: "#1e293b" # Deep slate blue for modern feel
+  image: assets\logos\app_logo_dark.png
+
 
 dev_dependencies:
   flutter_test:

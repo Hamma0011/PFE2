@@ -33,23 +33,14 @@ class AuthenticationRepository extends GetxController {
 
       try {
         if (event == AuthChangeEvent.signedIn && session != null) {
-          // Si signup en cours (pending data), on ne redirige pas encore
-          if (pending != null) {
-            // 'Inscription flow en cours, attente de vérification OTP';
-            return;
-          }
+          // Si inscription en cours => ne pas rediriger
+          if (pending != null) return;
 
-          // Cas login normal
-          // 'Connecté — récupération des infos utilisateur'
-          try {
-            await UserRepository.instance.fetchUserDetails();
-          } catch (e) {
-            throw Exception('Détails utilisateur erreur de chargement: $e');
-          }
+          // Connexion classique
+          await UserRepository.instance.fetchUserDetails();
           await TLocalStorage.init(session.user.id);
           Get.offAll(() => const NavigationMenu());
         } else if (event == AuthChangeEvent.signedOut) {
-          // Déconnexion — nettoyage et retour Login'
           await deviceStorage.remove('pending_user_data');
           Get.offAll(() => const LoginScreen());
         }
@@ -61,11 +52,9 @@ class AuthenticationRepository extends GetxController {
     screenRedirect();
   }
 
-  /// -- Flux de redirection
-
+  /// --- Redirection après démarrage
   Future<void> screenRedirect() async {
     final Map<String, dynamic> userData = SignupController.instance.userData;
-
     final user = authUser;
     final pending = deviceStorage.read('pending_user_data');
 
@@ -75,18 +64,20 @@ class AuthenticationRepository extends GetxController {
           (meta['email_verified'] == true) || (user.emailConfirmedAt != null);
 
       if (emailVerified) {
-        // Email déjà vérifié — navigation vers app principale
         await TLocalStorage.init(user.id);
         Get.offAll(() => const NavigationMenu());
       } else {
-        // OTP à vérifier
+        // OTP non vérifié
         final pendingMap = pending as Map<String, dynamic>?;
         final pendingEmail = pendingMap?['email'] as String? ?? user.email;
         final pendingUserData =
             pendingMap?['user_data'] as Map<String, dynamic>? ?? userData;
-        // Navigation vers OTPVerificationScreen pour pendingEmail
+
         Get.offAll(() => OTPVerificationScreen(
-            email: pendingEmail ?? user.email!, userData: pendingUserData));
+              email: pendingEmail ?? user.email!,
+              userData: pendingUserData,
+              isSignupFlow: pending != null,
+            ));
       }
     } else {
       deviceStorage.writeIfNull('IsFirstTime', true);
@@ -97,8 +88,7 @@ class AuthenticationRepository extends GetxController {
     }
   }
 
-  /// -- S'inscrire avec email par OTP
-
+  /// --- Inscription avec OTP
   Future<void> signUpWithEmailOTP(
       String email, Map<String, dynamic> userData) async {
     try {
@@ -113,13 +103,12 @@ class AuthenticationRepository extends GetxController {
         data: userData,
         emailRedirectTo: null,
       );
-    } catch (e, st) {
-      throw Exception('Erreur de signUpWithEmailOTP : $e\n$st');
+    } catch (e) {
+      throw Exception('Erreur signUpWithEmailOTP : $e');
     }
   }
 
-  /// Connexion avec OTP
-
+  /// --- Connexion par OTP (email seulement)
   Future<void> sendOtp(String email) async {
     try {
       await _auth.signInWithOtp(
@@ -133,8 +122,7 @@ class AuthenticationRepository extends GetxController {
     }
   }
 
-  /// -- Renvoyer OTP
-
+  /// --- Renvoyer OTP
   Future<void> resendOTP(String email) async {
     try {
       await _auth.signInWithOtp(
@@ -142,19 +130,17 @@ class AuthenticationRepository extends GetxController {
         shouldCreateUser: false,
         emailRedirectTo: null,
       );
-    } catch (e, st) {
-      throw Exception('resendOTP erreur: $e\n$st');
+    } catch (e) {
+      throw Exception('resendOTP erreur: $e');
     }
   }
 
-  /// -- Vérification OTP
-
+  /// --- Vérification OTP (différenciée signup / login)
   Future<void> verifyOTP({
     required String email,
     required String otp,
   }) async {
     try {
-      // Vérifier OTP
       final response = await _auth.verifyOTP(
         type: OtpType.email,
         email: email,
@@ -167,11 +153,11 @@ class AuthenticationRepository extends GetxController {
             "Échec de la vérification OTP : aucun utilisateur retourné.");
       }
 
-      // Vérifier si c’est un flux de signup
       final pending =
           deviceStorage.read('pending_user_data') as Map<String, dynamic>?;
 
       if (pending != null) {
+        // --- CAS INSCRIPTION
         final savedUserData = Map<String, dynamic>.from(
           pending['user_data'] as Map? ?? {},
         );
@@ -192,55 +178,50 @@ class AuthenticationRepository extends GetxController {
         );
 
         await UserRepository.instance.saveUserRecord(userModel);
-
         await deviceStorage.remove('pending_user_data');
+        await TLocalStorage.init(supabaseUser.id);
+        await UserController.instance.fetchUserRecord();
+
+        Get.offAll(() => const NavigationMenu());
       } else {
+        // --- CAS CONNEXION
         final existingUser =
             await UserRepository.instance.fetchUserDetails(supabaseUser.id);
 
         if (existingUser == null) {
-          throw Exception("Utilisateur introuvable. Inscription requise.");
+          throw Exception(
+              "Aucun utilisateur associé à cet email. Veuillez vous inscrire.");
         }
-        throw Exception("Utilisateur existant trouvé: ${existingUser.id}");
+
+        await TLocalStorage.init(supabaseUser.id);
+        await UserController.instance.fetchUserRecord();
+
+        Get.offAll(() => const NavigationMenu());
       }
-
-      // Init du stockage local
-      await TLocalStorage.init(supabaseUser.id);
-
-      // Lecture des données utilisateur
-      await UserController.instance.fetchUserRecord();
-
-      // Redirection vers page home
-      Get.offAll(() => const NavigationMenu());
-    } catch (e, st) {
+    } catch (e) {
       TLoaders.errorSnackBar(
-        title: "Erreur Vérification",
+        title: "Erreur Vérification OTP",
         message: e.toString(),
       );
-      throw Exception("Erreur verifyOTP: $e\n$st");
+      throw Exception("Erreur verifyOTP: $e");
     }
   }
 
-  /// -- Connexion avec un compte google
-
+  /// --- Connexion via Google
   Future<void> signInWithGoogle() async {
     try {
       await _auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: 'io.supabase.flutterquickstart://login-callback',
-        scopes: null,
-        authScreenLaunchMode: LaunchMode.platformDefault,
-        queryParams: null,
       );
-    } on AuthException catch (e, st) {
-      throw Exception('AuthException signInWithGoogle: ${e.message}\n$st');
-    } catch (e, st) {
-      throw Exception('Erreur inconnue signInWithGoogle: $e\n$st');
+    } on AuthException catch (e) {
+      throw Exception('AuthException signInWithGoogle: ${e.message}');
+    } catch (e) {
+      throw Exception('Erreur inconnue signInWithGoogle: $e');
     }
   }
 
-  /// -- Déconnexion
-
+  /// --- Déconnexion
   Future<void> logout() async {
     try {
       await _auth.signOut();

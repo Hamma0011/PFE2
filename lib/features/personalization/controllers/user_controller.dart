@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 
 class UserController extends GetxController {
   static UserController get instance => Get.find();
+  String get userRole => user.value.role;
 
   final profileLoading = false.obs;
   Rx<UserModel> user = UserModel.empty().obs;
@@ -115,8 +116,8 @@ class UserController extends GetxController {
 
       TLoaders.successSnackBar(
           title: 'Succès', message: 'Photo de profil mise à jour !');
-    } catch (e, st) {
-      debugPrint("Erreur updateProfileImage: $e\n$st");
+    } catch (e) {
+      debugPrint("Erreur updateProfileImage: $e");
       TLoaders.warningSnackBar(title: 'Erreur', message: e.toString());
     }
   }

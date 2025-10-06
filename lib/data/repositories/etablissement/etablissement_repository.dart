@@ -10,11 +10,8 @@ class EtablissementRepository {
   Future<String> createEtablissement(Etablissement e) async {
     final etabMap = e.toJson()..remove('created_at');
 
-    final inserted = await supabase
-        .from('etablissements')
-        .insert(etabMap)
-        .select()
-        .single();
+    final inserted =
+        await supabase.from('etablissements').insert(etabMap).select().single();
 
     return inserted['id'];
   }
@@ -22,33 +19,36 @@ class EtablissementRepository {
   // NOUVELLE MÉTHODE : Mettre à jour un établissement (sans toucher aux horaires)
   Future<bool> updateEtablissement(String id, Map<String, dynamic> data) async {
     try {
-      await supabase
-          .from('etablissements')
-          .update(data)
-          .eq('id', id);
+      await supabase.from('etablissements').update(data).eq('id', id);
       return true; // Retourne true si succès
     } catch (e) {
       print('Erreur mise à jour établissement: $e');
       return false; // Retourne false si erreur
     }
   }
+
   // Ajouter des horaires à un établissement existant
-  Future<void> addHorairesToEtablissement(String etablissementId, List<Horaire> horaires) async {
+  Future<void> addHorairesToEtablissement(
+      String etablissementId, List<Horaire> horaires) async {
     if (horaires.isEmpty) return;
 
-    final horairesData = horaires.map((h) => {
-      'etablissement_id': etablissementId,
-      'jour': h.jour.valeur,
-      'ouverture': h.ouverture,
-      'fermeture': h.fermeture,
-      'est_ouvert': h.estOuvert,
-    }).toList();
+    final horairesData = horaires
+        .map((h) => {
+              'etablissement_id': etablissementId,
+              'jour': h.jour.valeur,
+              'ouverture': h.ouverture,
+              'fermeture': h.fermeture,
+              'est_ouvert': h.estOuvert,
+            })
+        .toList();
 
     await supabase.from('horaires').insert(horairesData);
   }
 
   // Mettre à jour un établissement ET ses horaires
-  Future<void> updateEtablissementWithHoraires(String id, Map<String, dynamic> data, {List<Horaire>? newHoraires}) async {
+  Future<void> updateEtablissementWithHoraires(
+      String id, Map<String, dynamic> data,
+      {List<Horaire>? newHoraires}) async {
     await supabase.from('etablissements').update(data).eq('id', id);
 
     if (newHoraires != null) {
@@ -68,9 +68,22 @@ class EtablissementRepository {
         .eq('id_owner', ownerId)
         .order('created_at', ascending: false);
 
-    return (res as List)
-        .map((e) => Etablissement.fromJson(e))
-        .toList();
+    return (res as List).map((e) => Etablissement.fromJson(e)).toList();
+  }
+
+  /// Récupérer TOUS les établissements (pour Admin)
+
+  Future<List<Etablissement>> getAllEtablissements() async {
+    try {
+      final response = await supabase
+          .from('etablissements')
+          .select()
+          .order('created_at', ascending: false);
+
+      return response.map((json) => Etablissement.fromJson(json)).toList();
+    } catch (e) {
+      throw 'Erreur lors de la récupération de tous les établissements: $e';
+    }
   }
 
   // Supprimer un établissement
@@ -82,7 +95,6 @@ class EtablissementRepository {
   Future<void> changeStatut(String id, StatutEtablissement statut) async {
     await supabase
         .from('etablissements')
-        .update({'statut': statut.value})
-        .eq('id', id);
+        .update({'statut': statut.value}).eq('id', id);
   }
 }

@@ -34,64 +34,6 @@ class TLoginForm extends StatelessWidget {
               const SizedBox(
                 height: AppSizes.spaceBtwInputFields,
               ),
-              /*Obx(
-                () => TextFormField(
-                  controller: controller.password,
-                  validator: (value) => TValidator.validatePassword(value),
-                  obscureText: controller.hidePassword.value,
-                  decoration: InputDecoration(
-                    labelText: TTexts.password,
-                    prefixIcon: const Icon(Iconsax.password_check),
-                    suffixIcon: IconButton(
-                        onPressed: () => controller.hidePassword.value =
-                            !controller.hidePassword.value,
-                        icon: Icon(
-                          controller.hidePassword.value
-                              ? Iconsax.eye_slash
-                              : Iconsax.eye,
-                        )),
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: AppSizes.spaceBtwInputFields / 2,
-              ),
-
-              /// Remember Me & Forget Password
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  /// Remember Me
-                  Flexible(
-                    child: Row(
-                      children: [
-                        Obx(() => Checkbox(
-                            value: controller.rememberMe.value,
-                            onChanged: (value) => controller.rememberMe.value =
-                                !controller.rememberMe.value)),
-                        Flexible(child: const Text(TTexts.rememberMe))
-                      ],
-                    ),
-                  ),
-
-                  /// Forget Password
-                  TextButton(
-                      onPressed: () => Get.to(() => const ForgetPassword()),
-                      child: const Text(TTexts.forgetPassword))
-                ],
-              ),
-              const SizedBox(
-                height: AppSizes.spaceBtwSections,
-              ),
-
-              /// Sign in button
-              SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                      onPressed: () => controller.emailAndPasswordSignIn(),
-                      child: const Text(TTexts.signIn))),
-
-*/
 
               /// Bouton envoyer OTP
               SizedBox(

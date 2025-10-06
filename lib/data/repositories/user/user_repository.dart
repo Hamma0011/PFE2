@@ -25,8 +25,8 @@ class UserRepository extends GetxController {
     } on PostgrestException catch (e) {
       throw Exception(
           'Exception PostgrestException saveUserRecord: ${e.message}');
-    } catch (e, st) {
-      throw Exception('Unknown error saveUserRecord: $e\n$st');
+    } catch (e) {
+      throw Exception('Unknown error saveUserRecord: $e');
     }
   }
 
