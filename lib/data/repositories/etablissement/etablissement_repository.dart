@@ -17,9 +17,9 @@ class EtablissementRepository {
   }
 
   // NOUVELLE MÉTHODE : Mettre à jour un établissement (sans toucher aux horaires)
-  Future<bool> updateEtablissement(String id, Map<String, dynamic> data) async {
+  Future<bool> updateEtablissement(String? id, Map<String, dynamic> data) async {
     try {
-      await supabase.from('etablissements').update(data).eq('id', id);
+      await supabase.from('etablissements').update(data).eq('id', id!);
       return true; // Retourne true si succès
     } catch (e) {
       print('Erreur mise à jour établissement: $e');
@@ -92,9 +92,17 @@ class EtablissementRepository {
   }
 
   // Modifier le statut
-  Future<void> changeStatut(String id, StatutEtablissement statut) async {
-    await supabase
-        .from('etablissements')
-        .update({'statut': statut.value}).eq('id', id);
+  Future<bool> changeStatut(String id, StatutEtablissement statut) async {
+    try {
+      await supabase
+          .from('etablissements')
+          .update({'statut': statut.value})
+          .eq('id', id);
+      return true;  //Retourne true en cas de succès
+    } catch (e) {
+      print('Erreur changement statut: $e');
+      return false; //  Retourne false en cas d'erreur
+    }
   }
-}
+  }
+

@@ -39,7 +39,7 @@ class EtablissementController extends GetxController {
   }
 
   // Mettre à jour un établissement
-  Future<bool> updateEtablissement(String id, Map<String, dynamic> data) async {
+  Future<bool> updateEtablissement(String? id, Map<String, dynamic> data) async {
     try {
       if (!_isUserGerant()) {
         _logError('mise à jour',
@@ -106,7 +106,31 @@ Future<void> fetchUserEtablissements() async {
     _logError('rafraîchissement établissements', e);
   }
 }*/
+  // Méthode pour changer le statut d'un établissement (pour Admin)
+  Future<bool> changeStatutEtablissement(String id, StatutEtablissement newStatut) async {
+    try {
+      if (!_isUserAdmin()) {
+        _logError('changement statut', 'Permission refusée : Admin requis');
+        return false;
+      }
 
+      final success = await repo.changeStatut(id, newStatut);
+
+      if (success) {
+        // Rafraîchir la liste des établissements
+        await getTousEtablissements();
+        showSuccessSnackbar('Statut mis à jour avec succès');
+      } else {
+        showErrorSnackbar('Échec de la mise à jour du statut');
+      }
+
+      return success;
+    } catch (e, stack) {
+      _logError('changement statut', e, stack);
+      showErrorSnackbar('Erreur lors du changement de statut: $e');
+      return false;
+    }
+  }
   // Ajouter des horaires à un établissement existant
   Future<bool> addHorairesToEtablissement(
       String etablissementId, List<Horaire> horaires) async {
@@ -188,31 +212,14 @@ Future<void> fetchUserEtablissements() async {
       return false;
     }
   }
-
-  Future<bool> approveEtablissement(String id) async {
-    return _changeStatut(id, StatutEtablissement.approuve);
-  }
-
-  Future<bool> rejectEtablissement(String id) async {
-    return _changeStatut(id, StatutEtablissement.rejete);
-  }
-
-  // Méthode privée pour éviter la duplication
-  Future<bool> _changeStatut(String id, StatutEtablissement statut) async {
+// Méthode pour récupérer un établissement par son ID
+  Future<Etablissement?> getEtablissementById(String id) async {
     try {
-      if (!_isUserAdmin()) {
-        final action =
-            statut == StatutEtablissement.approuve ? 'approbation' : 'rejet';
-        _logError(action, 'Permission refusée : rôle insuffisant');
-        return false;
-      }
-      await repo.changeStatut(id, statut);
-      return true;
-    } catch (e, stack) {
-      final action =
-          statut == StatutEtablissement.approuve ? 'approbation' : 'rejet';
-      _logError(action, e, stack);
-      return false;
+      final tousEtablissements = await getTousEtablissements();
+      return tousEtablissements.firstWhereOrNull((etab) => etab.id == id);
+    } catch (e) {
+      _logError('récupération par ID', e);
+      return null;
     }
   }
 
@@ -232,13 +239,22 @@ Future<void> fetchUserEtablissements() async {
 
   // Méthode utilitaire pour vérifier si l'utilisateur est admin
   bool _isUserAdmin() {
-    return userController.userRole == 'Admin';
+    final userRole = userController.userRole; //  Utilise le getter userRole
+    print('Rôle utilisateur détecté: $userRole');
+
+    if (userRole.isEmpty) {
+      _logError('vérification admin', 'Utilisateur non connecté');
+      return false;
+    }
+
+    // Vérifie si le rôle est "Admin" (avec majuscule comme dans votre UserModel)
+    final isAdmin = userRole == 'Admin';
+    print('Est admin: $isAdmin');
+
+    return isAdmin;
   }
 
-  // Méthode pour vérifier plusieurs rôles
-  bool _hasPermission(List<String> allowedRoles) {
-    return allowedRoles.contains(userController.userRole);
-  }
+
 
   void showSuccessSnackbar(String message) {
     Get.snackbar(

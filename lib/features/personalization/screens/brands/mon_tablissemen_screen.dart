@@ -23,14 +23,29 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
   late final UserController _userController;
   String _userRole = '';
   bool _chargement = true;
+  List<Etablissement> _etablissements = []; // ✅ Stockage local
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.put(EtablissementController(EtablissementRepository()));
-    _userController = Get.find<UserController>();
-    _userRole = _userController.userRole;
+    _initializeControllers();
     _chargerEtablissements();
+  }
+
+  void _initializeControllers() {
+    try {
+      _controller = Get.find<EtablissementController>();
+    } catch (e) {
+      _controller = Get.put(EtablissementController(EtablissementRepository()));
+    }
+
+    try {
+      _userController = Get.find<UserController>();
+    } catch (e) {
+      _userController = Get.put(UserController());
+    }
+
+    _userRole = _userController.userRole;
   }
 
   void _chargerEtablissements() async {
@@ -42,13 +57,21 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
       final user = _userController.user.value;
       if (_userRole == 'Gérant' && user.id.isNotEmpty) {
         final data = await _controller.fetchEtablissementsByOwner(user.id);
-        _controller.etablissements.assignAll(data ?? []);
+        setState(() {
+          _etablissements = data ?? [];
+        });
       } else if (_userRole == 'Admin') {
         final data = await _controller.getTousEtablissements();
-        _controller.etablissements.assignAll(data);
+        setState(() {
+          _etablissements = data;
+        });
       }
     } catch (e) {
+      print('❌ Erreur chargement établissements: $e');
       Get.snackbar('Erreur', 'Impossible de charger les établissements');
+      setState(() {
+        _etablissements = [];
+      });
     } finally {
       setState(() {
         _chargement = false;
@@ -61,12 +84,7 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
     return Scaffold(
       appBar: _buildAppBar(),
       body: _buildBody(),
-      floatingActionButton: Obx(() {
-        final etabs = _controller.etablissements;
-        return _userRole == 'Gérant' && etabs.isEmpty
-            ? _buildFloatingActionButton()
-            : const SizedBox.shrink();
-      }),
+      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
@@ -88,22 +106,36 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
     if (_userRole != 'Admin' && _userRole != 'Gérant')
       return _buildAccesRefuse();
 
-    return Obx(() {
-      final etabs = _controller.etablissements;
-      if (etabs.isEmpty) return _buildEmptyState();
+    if (_etablissements.isEmpty) return _buildEmptyState();
 
-      return RefreshIndicator(
-        onRefresh: () async => _chargerEtablissements(),
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: etabs.length,
-          itemBuilder: (context, index) {
-            final e = etabs[index];
-            return _buildEtablissementCard(e, index);
-          },
-        ),
-      );
-    });
+    return RefreshIndicator(
+      onRefresh: () async => _chargerEtablissements(),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _etablissements.length,
+        itemBuilder: (context, index) {
+          final e = _etablissements[index];
+          return _buildEtablissementCard(e, index);
+        },
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    // ✅ CORRECTION: Simple condition sans Obx inutile
+    return _userRole == 'Gérant' && _etablissements.isEmpty
+        ? FloatingActionButton(
+      onPressed: () async {
+        final result = await Get.to(() => AddEtablissementScreen());
+        if (result == true) _chargerEtablissements();
+      },
+      backgroundColor: Colors.blue.shade600,
+      foregroundColor: Colors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: const Icon(Icons.add, size: 28),
+    )
+        : const SizedBox.shrink();
   }
 
   Widget _buildLoadingState() {
@@ -188,8 +220,7 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue.shade600,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
             ),
           ],
@@ -214,8 +245,7 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
         ],
       ),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         leading: _buildEtablissementImage(etablissement),
         title: Text(etablissement.name,
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
@@ -278,20 +308,6 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
       default:
         return (Colors.grey, "Inconnu");
     }
-  }
-
-  Widget _buildFloatingActionButton() {
-    return FloatingActionButton(
-      onPressed: () async {
-        final result = await Get.to(() => AddEtablissementScreen());
-        if (result == true) _chargerEtablissements();
-      },
-      backgroundColor: Colors.blue.shade600,
-      foregroundColor: Colors.white,
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: const Icon(Icons.add, size: 28),
-    );
   }
 
   void _showEtablissementOptions(Etablissement etablissement) {
@@ -429,8 +445,7 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.amber),

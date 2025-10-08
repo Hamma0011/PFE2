@@ -4,9 +4,9 @@ class Horaire {
   final String? id;
   final String etablissementId;
   final JourSemaine jour;
-  final String? ouverture;
-  final String? fermeture;
-  final bool estOuvert;
+  late final String? ouverture;
+  late final String? fermeture;
+  late final bool estOuvert;
 
   Horaire({
     this.id,

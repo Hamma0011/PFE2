@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 
-class HeureButtonAmeliore extends StatelessWidget {
+class HeureButton extends StatelessWidget {
   final String label;
   final String heure;
   final VoidCallback onTap;
-  final Color couleur;
+  final Color? couleur;
 
-  const HeureButtonAmeliore({
+  const HeureButton({
     super.key,
     required this.label,
     required this.heure,
     required this.onTap,
-    this.couleur = Colors.blue,
+    this.couleur,
   });
 
   @override
   Widget build(BuildContext context) {
+    final Color effectiveColor = couleur ?? Theme.of(context).primaryColor;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -30,12 +32,13 @@ class HeureButtonAmeliore extends StatelessWidget {
         const SizedBox(height: 6),
         GestureDetector(
           onTap: onTap,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              border: Border.all(color: couleur.withOpacity(0.3)),
+              border: Border.all(color: effectiveColor.withOpacity(0.3)),
               borderRadius: BorderRadius.circular(10),
-              color: couleur.withOpacity(0.1),
+              color: effectiveColor.withOpacity(0.1),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -45,13 +48,13 @@ class HeureButtonAmeliore extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: couleur,
+                    color: effectiveColor,
                   ),
                 ),
                 Icon(
                   Icons.access_time,
-                  size: 18,
-                  color: couleur,
+                  size: 20,
+                  color: effectiveColor,
                 ),
               ],
             ),

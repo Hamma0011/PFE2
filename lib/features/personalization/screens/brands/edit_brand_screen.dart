@@ -7,6 +7,7 @@ import '../../../shop/models/etablissement_model.dart';
 import '../../../shop/models/horaire_model.dart';
 import '../../../shop/models/jour_semaine.dart';
 import '../../../shop/models/statut_etablissement_model.dart';
+import '../../controllers/user_controller.dart';
 import '../etablisment/gestion_horaires_screen.dart';
 
 class EditEtablissementScreen extends StatefulWidget {
@@ -27,11 +28,13 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
   final _longitudeController = TextEditingController();
 
   final EtablissementController _etablissementController =
-      Get.find<EtablissementController>();
+  Get.find<EtablissementController>();
+  final UserController _userController = Get.find<UserController>();
   late final HoraireController _horaireController;
 
   bool _isLoading = false;
   bool _horairesLoaded = false;
+  StatutEtablissement _selectedStatut = StatutEtablissement.enAttente;
 
   @override
   void initState() {
@@ -57,6 +60,7 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
     _latitudeController.text = widget.etablissement.latitude?.toString() ?? '';
     _longitudeController.text =
         widget.etablissement.longitude?.toString() ?? '';
+    _selectedStatut = widget.etablissement.statut;
   }
 
   Future<void> _loadHoraires() async {
@@ -95,10 +99,10 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       print('🎯 Navigation vers GestionHoraires...');
 
       final result = await Get.to(() => GestionHorairesEtablissement(
-            etablissementId: widget.etablissement.id!,
-            nomEtablissement: widget.etablissement.name,
-            isCreation: false,
-          ));
+        etablissementId: widget.etablissement.id!,
+        nomEtablissement: widget.etablissement.name,
+        isCreation: false,
+      ));
 
       print('🔙 Retour de GestionHoraires avec result: $result');
 
@@ -106,7 +110,6 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
         print('🔄 Rechargement des horaires après modification...');
         await _loadHoraires();
 
-        // ✅ REMPLACÉ: Utilisation de la méthode du contrôleur
         _etablissementController
             .showSuccessSnackbar('Horaires mis à jour avec succès');
 
@@ -116,7 +119,6 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       }
     } catch (e) {
       print('❌ Erreur lors de la gestion des horaires: $e');
-      // ✅ REMPLACÉ: Utilisation de la méthode du contrôleur
       _etablissementController
           .showErrorSnackbar('Impossible de modifier les horaires: $e');
     }
@@ -139,6 +141,12 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
         'address': _addressController.text.trim(),
       };
 
+      // ✅ AJOUT: Inclure le statut si l'utilisateur est Admin
+      if (_userController.userRole == 'Admin' ) {
+        updateData['statut'] = _selectedStatut.index;
+        print('👤 Admin - Mise à jour du statut: ${_getStatutText(_selectedStatut)}');
+      }
+
       if (_latitudeController.text.isNotEmpty) {
         updateData['latitude'] = double.tryParse(_latitudeController.text);
       }
@@ -149,17 +157,15 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       print('📤 Envoi des données: $updateData');
 
       final success = await _etablissementController.updateEtablissement(
-        widget.etablissement.id!,
+        widget.etablissement.id,
         updateData,
       );
-      Get.back(result: true);
 
       print('✅ Réponse reçue: $success');
 
       if (success) {
         print('🎉 Succès - Affichage snackbar');
 
-        // ✅ REMPLACÉ: Utilisation de la méthode du contrôleur
         _etablissementController
             .showSuccessSnackbar('Établissement mis à jour avec succès');
 
@@ -167,15 +173,13 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
         await Future.delayed(const Duration(milliseconds: 1500));
 
         print('🚪 Fermeture de l écran');
-        //Get.back(result: true);
+        Get.back(result: true);
       } else {
         print('❌ Échec - Affichage erreur');
-        // ✅ REMPLACÉ: Utilisation de la méthode du contrôleur
         _etablissementController.showErrorSnackbar('Échec de la mise à jour');
       }
     } catch (e) {
       print('💥 Erreur catch: $e');
-      // ✅ REMPLACÉ: Utilisation de la méthode du contrôleur
       _etablissementController.showErrorSnackbar('Erreur: $e');
     } finally {
       print('🏁 Fin du processus');
@@ -316,11 +320,11 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
   String _getStatutText(StatutEtablissement statut) {
     switch (statut) {
       case StatutEtablissement.approuve:
-        return 'Approuvé';
+        return 'Approuvé ✓';
       case StatutEtablissement.rejete:
-        return 'Rejeté';
+        return 'Rejeté ✗';
       case StatutEtablissement.enAttente:
-        return 'En attente';
+        return 'En attente de validation';
     }
   }
 
@@ -332,6 +336,17 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
         return Colors.red;
       case StatutEtablissement.enAttente:
         return Colors.orange;
+    }
+  }
+
+  String _getStatutDescription(StatutEtablissement statut) {
+    switch (statut) {
+      case StatutEtablissement.approuve:
+        return 'L\'établissement est visible et actif';
+      case StatutEtablissement.rejete:
+        return 'L\'établissement a été refusé';
+      case StatutEtablissement.enAttente:
+        return 'En attente de validation par un administrateur';
     }
   }
 
@@ -354,6 +369,129 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
     }
   }
 
+  Widget _buildStatutSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.info, color: _getStatutColor(_selectedStatut)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Statut de l\'établissement',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Sélecteur de statut - seulement pour Admin
+                      if (_userController.userRole == 'Admin') ...[
+                        DropdownButtonFormField<StatutEtablissement>(
+                          value: _selectedStatut,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                            hintText: 'Sélectionnez un statut',
+                          ),
+                          items: StatutEtablissement.values.map((statut) {
+                            return DropdownMenuItem(
+                              value: statut,
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: _getStatutColor(statut),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(_getStatutText(statut)),
+                                        Text(
+                                          _getStatutDescription(statut),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (newStatut) {
+                            if (newStatut != null) {
+                              setState(() {
+                                _selectedStatut = newStatut;
+                              });
+                            }
+                          },
+                        ),
+                      ] else ...[
+                        // Affichage simple pour les non-Admins
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _getStatutColor(_selectedStatut).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _getStatutColor(_selectedStatut).withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _getStatutText(_selectedStatut),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: _getStatutColor(_selectedStatut),
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _getStatutDescription(_selectedStatut),
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (_userController.userRole != 'Admin') ...[
+              const SizedBox(height: 8),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -370,182 +508,143 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    // Carte statut
-                    Card(
-                      color: _getStatutColor(widget.etablissement.statut)
-                          .withOpacity(0.1),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.info,
-                              color:
-                                  _getStatutColor(widget.etablissement.statut),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Statut',
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                  Text(
-                                    _getStatutText(widget.etablissement.statut),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: _getStatutColor(
-                                              widget.etablissement.statut),
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              // Section Statut
+              _buildStatutSection(),
+              const SizedBox(height: 16),
 
-                    // Informations de l'établissement
-                    TextFormField(
-                      controller: _nameController,
+              // Informations de l'établissement
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nom de l\'établissement',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.business),
+                ),
+                validator: (v) => v == null || v.isEmpty
+                    ? 'Veuillez entrer le nom'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _addressController,
+                decoration: const InputDecoration(
+                  labelText: 'Adresse complète',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_on),
+                ),
+                maxLines: 2,
+                validator: (v) => v == null || v.isEmpty
+                    ? 'Veuillez entrer l\'adresse'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+
+              // Coordonnées GPS
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _latitudeController,
                       decoration: const InputDecoration(
-                        labelText: 'Nom de l\'établissement',
+                        labelText: 'Latitude',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.business),
+                        prefixIcon: Icon(Icons.gps_fixed),
                       ),
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'Veuillez entrer le nom'
-                          : null,
+                      keyboardType:
+                      TextInputType.numberWithOptions(decimal: true),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _addressController,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _longitudeController,
                       decoration: const InputDecoration(
-                        labelText: 'Adresse complète',
+                        labelText: 'Longitude',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.location_on),
+                        prefixIcon: Icon(Icons.gps_fixed),
                       ),
-                      maxLines: 2,
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'Veuillez entrer l\'adresse'
-                          : null,
+                      keyboardType:
+                      TextInputType.numberWithOptions(decimal: true),
                     ),
-                    const SizedBox(height: 16),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Les coordonnées GPS sont optionnelles',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 24),
 
-                    // Coordonnées GPS
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _latitudeController,
-                            decoration: const InputDecoration(
-                              labelText: 'Latitude',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.gps_fixed),
+              // Section Horaires
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.access_time,
+                              color: Colors.orange),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Horaires d\'ouverture',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _longitudeController,
-                            decoration: const InputDecoration(
-                              labelText: 'Longitude',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.gps_fixed),
-                            ),
-                            keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Les coordonnées GPS sont optionnelles',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Section Horaires
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.access_time,
-                                    color: Colors.orange),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'Horaires d\'ouverture',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            _buildHorairesSection(),
-                          ],
-                        ),
+                        ],
                       ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Boutons d'action
-                    Column(
-                      children: [
-                        ElevatedButton(
-                          onPressed: _updateEtablissement,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            minimumSize: const Size(double.infinity, 50),
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text(
-                            'Enregistrer les modifications',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        OutlinedButton(
-                          onPressed: () => Get.back(),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            minimumSize: const Size(double.infinity, 50),
-                          ),
-                          child: const Text('Annuler'),
-                        ),
-                      ],
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      _buildHorairesSection(),
+                    ],
+                  ),
                 ),
               ),
-            ),
+
+              const SizedBox(height: 32),
+
+              // Boutons d'action
+              Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: _updateEtablissement,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      minimumSize: const Size(double.infinity, 50),
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text(
+                      'Enregistrer les modifications',
+                      style: TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () => Get.back(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: const Text('Annuler'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
