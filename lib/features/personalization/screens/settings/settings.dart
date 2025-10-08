@@ -136,9 +136,10 @@ class SettingsScreen extends StatelessWidget {
                 if (canAddCategory())
                   TSettingsMenuTile(
                     icon: Iconsax.home,
-                    title: "Ajouter une établissement",
+                    title: "Gérer  établissement",
                     subTitle: "Insère un établissement",
-                    onTap: () => Get.to(() => MonEtablissementScreen()),
+                    onTap: () =>
+                        Get.to(() => MonEtablissementScreen()),
                   ),
                 SizedBox(
                   height: AppSizes.spaceBtwSections,

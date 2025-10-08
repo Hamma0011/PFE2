@@ -1,5 +1,7 @@
+import 'package:caferesto/features/personalization/screens/brands/admin_gestion_etat_etablissement_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 import '../../../../common/widgets/appbar/appbar.dart';
 import '../../../../data/repositories/etablissement/etablissement_repository.dart';
 import '../../../../features/personalization/controllers/user_controller.dart';
@@ -416,6 +418,29 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
               ),
             ),
           ),
+          /*if (_userRole == 'Admin' || _userRole == 'Gérant')
+            Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final result = await Get.to(() =>
+                      AdminGestionEtablissementsScreen());
+                  if (result == true) _chargerEtablissements();
+                },
+                icon: const Icon(Iconsax.edit, size: 20),
+                label: const Text("Approbation"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade50,
+                  foregroundColor: Colors.blue.shade700,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ),*/
           if (_userRole == 'Admin' || _userRole == 'Gérant')
             Expanded(
               child: Container(

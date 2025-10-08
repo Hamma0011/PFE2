@@ -162,7 +162,7 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       );
 
       print('✅ Réponse reçue: $success');
-
+      Get.back(result: true);
       if (success) {
         print('🎉 Succès - Affichage snackbar');
 
@@ -173,7 +173,7 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
         await Future.delayed(const Duration(milliseconds: 1500));
 
         print('🚪 Fermeture de l écran');
-        Get.back(result: true);
+        //Get.back(result: true);
       } else {
         print('❌ Échec - Affichage erreur');
         _etablissementController.showErrorSnackbar('Échec de la mise à jour');

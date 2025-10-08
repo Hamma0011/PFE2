@@ -1,3 +1,5 @@
+import 'package:caferesto/utils/constants/colors.dart';
+import 'package:caferesto/utils/helpers/helper_functions.dart';
 import 'package:flutter/material.dart';
 
 import '../../../utils/constants/sizes.dart';
@@ -20,6 +22,7 @@ class TSectionHeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = THelperFunctions.isDarkMode(context);
     return Padding(
       padding: padding ??
           const EdgeInsets.symmetric(horizontal: AppSizes.defaultSpace),
@@ -34,7 +37,7 @@ class TSectionHeading extends StatelessWidget {
                 style: Theme.of(context)
                     .textTheme
                     .headlineSmall!
-                    .copyWith(fontWeight: FontWeight.w600, color: Colors.white),
+                    .copyWith(fontWeight: FontWeight.w600, color: dark ? AppColors.white : Colors.black),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
