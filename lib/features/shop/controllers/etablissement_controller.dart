@@ -39,11 +39,12 @@ class EtablissementController extends GetxController {
   }
 
   // Mettre à jour un établissement
-  Future<bool> updateEtablissement(String? id, Map<String, dynamic> data) async {
+  Future<bool> updateEtablissement(
+      String? id, Map<String, dynamic> data) async {
     try {
-      if (!_isUserGerant()) {
+      if (!_isUserGerant() && !_isUserAdmin()) {
         _logError('mise à jour',
-            'Permission refusée : seul un Gérant peut modifier un établissement');
+            'Permission refusée : seul un Gérant/Admin peut modifier un établissement');
         return false;
       }
 
@@ -54,6 +55,7 @@ class EtablissementController extends GetxController {
       return false;
     }
   }
+
 /*
   // Dans EtablissementController
 Future<bool> updateEtablissementWithData(
@@ -107,7 +109,8 @@ Future<void> fetchUserEtablissements() async {
   }
 }*/
   // Méthode pour changer le statut d'un établissement (pour Admin)
-  Future<bool> changeStatutEtablissement(String id, StatutEtablissement newStatut) async {
+  Future<bool> changeStatutEtablissement(
+      String id, StatutEtablissement newStatut) async {
     try {
       if (!_isUserAdmin()) {
         _logError('changement statut', 'Permission refusée : Admin requis');
@@ -131,6 +134,7 @@ Future<void> fetchUserEtablissements() async {
       return false;
     }
   }
+
   // Ajouter des horaires à un établissement existant
   Future<bool> addHorairesToEtablissement(
       String etablissementId, List<Horaire> horaires) async {
@@ -200,7 +204,7 @@ Future<void> fetchUserEtablissements() async {
 
   Future<bool> deleteEtablissement(String id) async {
     try {
-      if (!_isUserGerant()) {
+      if (!_isUserGerant() && !_isUserAdmin()) {
         _logError('suppression',
             'Permission refusée : seul un Gérant peut supprimer un établissement');
         return false;
@@ -212,6 +216,7 @@ Future<void> fetchUserEtablissements() async {
       return false;
     }
   }
+
 // Méthode pour récupérer un établissement par son ID
   Future<Etablissement?> getEtablissementById(String id) async {
     try {
@@ -254,7 +259,16 @@ Future<void> fetchUserEtablissements() async {
     return isAdmin;
   }
 
-
+/// Pour récupérer  le statut
+  Future<StatutEtablissement?> getStatutEtablissement(String etablissementId) async {
+    try {
+      final etablissement = await getEtablissementById(etablissementId);
+      return etablissement?.statut;
+    } catch (e) {
+      _logError('récupération statut', e);
+      return null;
+    }
+  }
 
   void showSuccessSnackbar(String message) {
     Get.snackbar(

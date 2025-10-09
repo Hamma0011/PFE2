@@ -138,8 +138,7 @@ class SettingsScreen extends StatelessWidget {
                     icon: Iconsax.home,
                     title: "Gérer  établissement",
                     subTitle: "Insère un établissement",
-                    onTap: () =>
-                        Get.to(() => MonEtablissementScreen()),
+                    onTap: () => Get.to(() => MonEtablissementScreen()),
                   ),
                 SizedBox(
                   height: AppSizes.spaceBtwSections,

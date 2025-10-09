@@ -28,7 +28,7 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
   final _longitudeController = TextEditingController();
 
   final EtablissementController _etablissementController =
-  Get.find<EtablissementController>();
+      Get.find<EtablissementController>();
   final UserController _userController = Get.find<UserController>();
   late final HoraireController _horaireController;
 
@@ -99,10 +99,10 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       print('🎯 Navigation vers GestionHoraires...');
 
       final result = await Get.to(() => GestionHorairesEtablissement(
-        etablissementId: widget.etablissement.id!,
-        nomEtablissement: widget.etablissement.name,
-        isCreation: false,
-      ));
+            etablissementId: widget.etablissement.id!,
+            nomEtablissement: widget.etablissement.name,
+            isCreation: false,
+          ));
 
       print('🔙 Retour de GestionHoraires avec result: $result');
 
@@ -142,9 +142,10 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       };
 
       // ✅ AJOUT: Inclure le statut si l'utilisateur est Admin
-      if (_userController.userRole == 'Admin' ) {
-        updateData['statut'] = _selectedStatut.index;
-        print('👤 Admin - Mise à jour du statut: ${_getStatutText(_selectedStatut)}');
+      if (_userController.userRole == 'Admin') {
+        updateData['statut'] = _selectedStatut.name;
+        print(
+            '👤 Admin - Mise à jour du statut: ${_getStatutText(_selectedStatut)}');
       }
 
       if (_latitudeController.text.isNotEmpty) {
@@ -274,6 +275,7 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
     final horairesOuverts = _horaireController.horaires
         .where((h) => h.estOuvert && h.isValid)
         .toList();
+    horairesOuverts.sort((a, b) => a.jour.index.compareTo(b.jour.index));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,12 +289,12 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ...horairesOuverts.take(3).map(_buildHorairePreview).toList(),
-          if (horairesOuverts.length > 3)
+          ...horairesOuverts.take(5).map(_buildHorairePreview).toList(),
+          if (horairesOuverts.length > 5)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
-                '... et ${horairesOuverts.length - 3} autres jours',
+                '... et ${horairesOuverts.length - 5} autres jours',
                 style: const TextStyle(
                     fontStyle: FontStyle.italic, color: Colors.grey),
               ),
@@ -339,17 +341,6 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
     }
   }
 
-  String _getStatutDescription(StatutEtablissement statut) {
-    switch (statut) {
-      case StatutEtablissement.approuve:
-        return 'L\'établissement est visible et actif';
-      case StatutEtablissement.rejete:
-        return 'L\'établissement a été refusé';
-      case StatutEtablissement.enAttente:
-        return 'En attente de validation par un administrateur';
-    }
-  }
-
   String _getJourAbrege(JourSemaine jour) {
     switch (jour) {
       case JourSemaine.lundi:
@@ -387,8 +378,8 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
                       Text(
                         'Statut de l\'établissement',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       const SizedBox(height: 8),
                       // Sélecteur de statut - seulement pour Admin
@@ -397,41 +388,29 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
                           value: _selectedStatut,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 12),
                             hintText: 'Sélectionnez un statut',
+                            labelText: 'Statut de l\'établissement',
                           ),
                           items: StatutEtablissement.values.map((statut) {
-                            return DropdownMenuItem(
+                            return DropdownMenuItem<StatutEtablissement>(
                               value: statut,
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: _getStatutColor(statut),
-                                      shape: BoxShape.circle,
-                                    ),
+                              child: ListTile(
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                                leading: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: _getStatutColor(statut),
+                                    shape: BoxShape.circle,
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(_getStatutText(statut)),
-                                        Text(
-                                          _getStatutDescription(statut),
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                                ),
+                                title: Text(
+                                  _getStatutText(statut),
+                                  style: const TextStyle(fontSize: 14),
+                                ),
                               ),
                             );
                           }).toList(),
@@ -442,6 +421,10 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
                               });
                             }
                           },
+                          validator: (value) => value == null
+                              ? 'Veuillez sélectionner un statut'
+                              : null,
+                          isExpanded: true,
                         ),
                       ] else ...[
                         // Affichage simple pour les non-Admins
@@ -449,10 +432,12 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
-                            color: _getStatutColor(_selectedStatut).withOpacity(0.1),
+                            color: _getStatutColor(_selectedStatut)
+                                .withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: _getStatutColor(_selectedStatut).withOpacity(0.3),
+                              color: _getStatutColor(_selectedStatut)
+                                  .withOpacity(0.3),
                             ),
                           ),
                           child: Column(
@@ -464,14 +449,6 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
                                   fontWeight: FontWeight.bold,
                                   color: _getStatutColor(_selectedStatut),
                                   fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _getStatutDescription(_selectedStatut),
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -508,143 +485,143 @@ class _EditEtablissementScreenState extends State<EditEtablissementScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              // Section Statut
-              _buildStatutSection(),
-              const SizedBox(height: 16),
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    // Section Statut
+                    _buildStatutSection(),
+                    const SizedBox(height: 16),
 
-              // Informations de l'établissement
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nom de l\'établissement',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.business),
-                ),
-                validator: (v) => v == null || v.isEmpty
-                    ? 'Veuillez entrer le nom'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Adresse complète',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_on),
-                ),
-                maxLines: 2,
-                validator: (v) => v == null || v.isEmpty
-                    ? 'Veuillez entrer l\'adresse'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Coordonnées GPS
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _latitudeController,
+                    // Informations de l'établissement
+                    TextFormField(
+                      controller: _nameController,
                       decoration: const InputDecoration(
-                        labelText: 'Latitude',
+                        labelText: 'Nom de l\'établissement',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.gps_fixed),
+                        prefixIcon: Icon(Icons.business),
                       ),
-                      keyboardType:
-                      TextInputType.numberWithOptions(decimal: true),
+                      validator: (v) => v == null || v.isEmpty
+                          ? 'Veuillez entrer le nom'
+                          : null,
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _longitudeController,
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _addressController,
                       decoration: const InputDecoration(
-                        labelText: 'Longitude',
+                        labelText: 'Adresse complète',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.gps_fixed),
+                        prefixIcon: Icon(Icons.location_on),
                       ),
-                      keyboardType:
-                      TextInputType.numberWithOptions(decimal: true),
+                      maxLines: 2,
+                      validator: (v) => v == null || v.isEmpty
+                          ? 'Veuillez entrer l\'adresse'
+                          : null,
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Les coordonnées GPS sont optionnelles',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
-              // Section Horaires
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time,
-                              color: Colors.orange),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Horaires d\'ouverture',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                              fontWeight: FontWeight.bold,
+                    // Coordonnées GPS
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _latitudeController,
+                            decoration: const InputDecoration(
+                              labelText: 'Latitude',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.gps_fixed),
                             ),
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
                           ),
-                        ],
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _longitudeController,
+                            decoration: const InputDecoration(
+                              labelText: 'Longitude',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.gps_fixed),
+                            ),
+                            keyboardType:
+                                TextInputType.numberWithOptions(decimal: true),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Les coordonnées GPS sont optionnelles',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Section Horaires
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.access_time,
+                                    color: Colors.orange),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Horaires d\'ouverture',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _buildHorairesSection(),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      _buildHorairesSection(),
-                    ],
-                  ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Boutons d'action
+                    Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: _updateEtablissement,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            minimumSize: const Size(double.infinity, 50),
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text(
+                            'Enregistrer les modifications',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton(
+                          onPressed: () => Get.back(),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            minimumSize: const Size(double.infinity, 50),
+                          ),
+                          child: const Text('Annuler'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 32),
-
-              // Boutons d'action
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: _updateEtablissement,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text(
-                      'Enregistrer les modifications',
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: () => Get.back(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text('Annuler'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 

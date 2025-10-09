@@ -127,16 +127,17 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
     // ✅ CORRECTION: Simple condition sans Obx inutile
     return _userRole == 'Gérant' && _etablissements.isEmpty
         ? FloatingActionButton(
-      onPressed: () async {
-        final result = await Get.to(() => AddEtablissementScreen());
-        if (result == true) _chargerEtablissements();
-      },
-      backgroundColor: Colors.blue.shade600,
-      foregroundColor: Colors.white,
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: const Icon(Icons.add, size: 28),
-    )
+            onPressed: () async {
+              final result = await Get.to(() => AddEtablissementScreen());
+              if (result == true) _chargerEtablissements();
+            },
+            backgroundColor: Colors.blue.shade600,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: const Icon(Icons.add, size: 28),
+          )
         : const SizedBox.shrink();
   }
 
@@ -222,7 +223,8 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue.shade600,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
             ),
           ],
@@ -247,7 +249,8 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         leading: _buildEtablissementImage(etablissement),
         title: Text(etablissement.name,
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
@@ -470,7 +473,8 @@ class _MonEtablissementScreenState extends State<MonEtablissementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.amber),
