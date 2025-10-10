@@ -12,6 +12,7 @@ import '../../../../common/widgets/list_tiles/settings_menu_tile.dart';
 import '../../../../common/widgets/list_tiles/user_profile_tile.dart';
 import '../../../../data/repositories/authentication/authentication_repository.dart';
 import '../../../../utils/constants/sizes.dart';
+import '../../../shop/screens/product_reviews/list_produit_screen.dart';
 import '../../controllers/user_controller.dart';
 import '../address/address.dart';
 import '../brands/mon_tablissemen_screen.dart';
@@ -143,6 +144,14 @@ class SettingsScreen extends StatelessWidget {
                 SizedBox(
                   height: AppSizes.spaceBtwSections,
                 ),
+
+                if (canAddCategory())
+                  TSettingsMenuTile(
+                    icon: Iconsax.home,
+                    title: "Gérer produit",
+                    subTitle: "gerer les produit",
+                    onTap: () => Get.to(() => ListProduitScreen()),
+                  ),
                 SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(

@@ -85,11 +85,11 @@ Future<bool> updateEtablissementWithData(
     }
 
     final success = await repo.updateEtablissement(id, updateData);
-    
+
     if (success) {
       await fetchUserEtablissements(); // Rafraîchir les données
     }
-    
+
     return success;
   } catch (e, stack) {
     _logError('mise à jour', e, stack);
@@ -259,7 +259,7 @@ Future<void> fetchUserEtablissements() async {
     return isAdmin;
   }
 
-/// Pour récupérer  le statut
+  /// Pour récupérer  le statut
   Future<StatutEtablissement?> getStatutEtablissement(String etablissementId) async {
     try {
       final etablissement = await getEtablissementById(etablissementId);
@@ -296,6 +296,36 @@ Future<void> fetchUserEtablissements() async {
       icon: const Icon(Icons.error, color: Colors.white),
       duration: const Duration(seconds: 3),
     );
+  }
+
+  // ✅ NOUVELLE MÉTHODE : Récupérer l'établissement de l'utilisateur connecté
+  Future<Etablissement?> getEtablissementUtilisateurConnecte() async {
+    try {
+      final user = userController.user.value;
+
+      // Vérifier que l'utilisateur est connecté
+      if (user.id.isEmpty) {
+        _logError('récupération établissement', 'Utilisateur non connecté');
+        return null;
+      }
+
+      // Récupérer les établissements de l'utilisateur
+      final etablissementsUtilisateur = await fetchEtablissementsByOwner(user.id);
+
+      if (etablissementsUtilisateur == null || etablissementsUtilisateur.isEmpty) {
+        print('⚠️ Aucun établissement trouvé pour l\'utilisateur: ${user.id}');
+        return null;
+      }
+
+      // Retourner le premier établissement (ou le seul établissement)
+      final etablissement = etablissementsUtilisateur.first;
+      print('✅ Établissement trouvé: ${etablissement.name} (${etablissement.id})');
+      return etablissement;
+
+    } catch (e, stack) {
+      _logError('récupération établissement utilisateur', e, stack);
+      return null;
+    }
   }
 
   void _logError(String action, Object error, [StackTrace? stack]) {
